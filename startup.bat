@@ -17,7 +17,7 @@ start cmd /k "cd frontend && python -m http.server 8000"
 echo.
 echo Services started!
 echo.
-echo Access the website at: http://localhost:8000/pages/login.html
+echo Access the website at: http://localhost:8000/index.html
 echo API Documentation: http://localhost:5000/api/docs
 echo.
 pause
