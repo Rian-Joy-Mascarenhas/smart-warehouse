@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice Management - Smart Warehouse</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <style>
+        .invoice-badge {
+            padding: 0.4rem 0.8rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .draft {
+            background-color: #e9ecef;
+            color: #495057;
+        }
+
+        .pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .paid {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status-badge.draft {
+            background-color: #e9ecef;
+            color: #495057;
+        }
+
+        .status-badge.pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .status-badge.paid {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .payment-badge.paid {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .payment-badge.unpaid {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .btn-info {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .btn-info:hover {
+            background-color: #2980b9;
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #3498db;
+            margin: 1rem 0;
+        }
+
+        .filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filters input,
+        .filters select {
+            flex: 1;
+            min-width: 200px;
+            padding: 0.75rem;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+        }
+
+        .btn-sm {
+            padding: 0.4rem 0.6rem;
+            font-size: 0.8rem;
+            margin: 0.2rem;
+        }
+
+        .btn-secondary {
+            background-color: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #7f8c8d;
+        }
+
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+
+        #invoicesTable th:first-child,
+        #invoicesTable td:first-child {
+            text-align: center;
+            width: 40px;
+        }
+
+        #invoicesTable input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .filters {
+                flex-direction: column;
+            }
+
+            .filters input,
+            .filters select {
+                min-width: 100%;
+                flex: 1 100%;
+            }
+
+            .stats-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-container">
+            <a href="../pages/dashboard.html" class="nav-logo">🏭 Smart Warehouse</a>
+            <ul class="nav-links">
+                <li><a href="../pages/dashboard.html">Dashboard</a></li>
+                <li><a href="../pages/inventory.html">Inventory</a></li>
+                <li><a href="../pages/sales.html">Sales</a></li>
+                <li><a href="../pages/invoices.html">Invoices</a></li>
+                <li><a href="../pages/analytics.html">Analytics</a></li>
+                <li><a href="#profile" onclick="showProfileModal()">Profile</a></li>
+            </ul>
+            <div class="nav-user">
+                <div class="user-info">Welcome, User</div>
+                <button id="logoutBtn" class="btn-logout">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="actions-header">
+            <h1>📄 Invoice Management</h1>
+        </div>
+
+        <!-- Statistics -->
+        <div class="stats-container">
+            <div class="stat-card">
+                <h3>Total Invoices</h3>
+                <div class="stat-value" id="totalInvoices">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Total Revenue</h3>
+                <div class="stat-value" id="invoiceRevenue">$0.00</div>
+            </div>
+            <div class="stat-card">
+                <h3>Unpaid Invoices</h3>
+                <div class="stat-value" id="unpaidInvoices">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Avg Invoice Value</h3>
+                <div class="stat-value" id="avgInvoiceValue">$0.00</div>
+            </div>
+        </div>
+
+                <!-- Filters -->
+        <div class="filters">
+            <input 
+                type="text" 
+                id="searchInvoices" 
+                placeholder="Search by invoice number or customer name..."
+                style="flex: 2;"
+            >
+            <select id="invoiceStatusFilter">
+                <option value="">All Statuses</option>
+                <option value="DRAFT">Draft</option>
+                <option value="SENT">Sent</option>
+                <option value="PAID">Paid</option>
+                <option value="OVERDUE">Overdue</option>
+                <option value="CANCELLED">Cancelled</option>
+            </select>
+            <button class="btn btn-primary" onclick="invoiceManager.sendBulkInvoices()">📧 Send Selected</button>
+        </div>
+
+        <!-- Invoices Table -->
+        <div class="table-container">
+            <table id="invoicesTable">
+                <thead>
+                    <tr>
+                        <th style="width: 40px;"><input type="checkbox" id="selectAllInvoices" onchange="selectAllInvoices(this)"></th>
+                        <th>Invoice Number</th>
+                        <th>Customer</th>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Payment</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="8" style="text-align: center; padding: 2rem;">Loading invoices...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <script>
+            function selectAllInvoices(checkbox) {
+                const checkboxes = document.querySelectorAll('input[name="invoice-select"]');
+                checkboxes.forEach(cb => cb.checked = checkbox.checked);
+            }
+        </script>
+
+        <!-- Pagination -->
+        <div id="invoicesPagination" style="display: flex; justify-content: center; gap: 1rem; margin: 2rem 0;"></div>
+    </div>
+
+    <!-- View Invoice Modal -->
+    <div id="viewInvoiceModal" class="modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <!-- Content loaded dynamically -->
+        </div>
+    </div>
+
+    <!-- Edit Invoice Modal -->
+    <div id="editInvoiceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Invoice</h2>
+                <button type="button" class="modal-close" onclick="invoiceManager.closeModal('editInvoiceModal')">&times;</button>
+            </div>
+            <form id="editInvoiceForm" style="padding: 1.5rem;">
+                <input type="hidden" id="editInvoiceId">
+                
+                <div class="form-group">
+                    <label for="editInvoiceNumber">Invoice Number</label>
+                    <input type="text" id="editInvoiceNumber" readonly style="background-color: #ecf0f1;">
+                </div>
+
+                <div class="form-group">
+                    <label for="editInvoiceStatus">Invoice Status *</label>
+                    <select id="editInvoiceStatus" required>
+                        <option value="DRAFT">Draft</option>
+                        <option value="SENT">Sent</option>
+                        <option value="PAID">Paid</option>
+                        <option value="OVERDUE">Overdue</option>
+                        <option value="CANCELLED">Cancelled</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="editPaymentStatus">Payment Status *</label>
+                    <select id="editPaymentStatus" required>
+                        <option value="UNPAID">Unpaid</option>
+                        <option value="PARTIAL">Partial</option>
+                        <option value="PAID">Paid</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="editDueDate">Due Date</label>
+                    <input type="date" id="editDueDate">
+                </div>
+
+                <div style="background-color: #f8f9fa; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
+                    <p style="display: flex; justify-content: space-between;">
+                        <strong>Invoice Total:</strong>
+                        <strong id="editInvoiceTotal">$0.00</strong>
+                    </p>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Update Invoice</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            const editForm = document.getElementById('editInvoiceForm');
+            if (editForm) {
+                editForm.addEventListener('submit', (e) => invoiceManager.handleUpdateInvoice(e));
+            }
+
+            // Close modal when clicking outside
+            window.addEventListener('click', (e) => {
+                if (e.target.classList.contains('modal')) {
+                    e.target.classList.remove('show');
+                }
+            });
+        });
+    </script>
+
+    <script src="../js/session.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/pdf-generator.js"></script>
+    <script src="../js/invoice.js"></script>
+</body>
+</html>

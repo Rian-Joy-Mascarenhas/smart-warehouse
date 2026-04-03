@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Management - Smart Warehouse</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <style>
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #bdc3c7;
+            margin-bottom: 2rem;
+            gap: 1rem;
+        }
+
+        .tab-button {
+            background: none;
+            border: none;
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            font-size: 1rem;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            color: #7f8c8d;
+        }
+
+        .tab-button.active {
+            border-bottom-color: #3498db;
+            color: #3498db;
+            font-weight: bold;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #3498db;
+            margin: 1rem 0;
+        }
+
+        .status-badge, .payment-badge {
+            padding: 0.4rem 0.8rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .status-badge.pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .status-badge.active {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status-badge.cancelled {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .payment-badge.paid {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .payment-badge.unpaid {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .btn-info {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .btn-info:hover {
+            background-color: #2980b9;
+        }
+
+        .filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filters input,
+        .filters select {
+            flex: 1;
+            min-width: 200px;
+            padding: 0.75rem;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+        }
+
+        #orderItemsTable {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        #orderItemsTable thead {
+            position: sticky;
+            top: 0;
+            background-color: #ecf0f1;
+            z-index: 5;
+        }
+
+        #orderItemsTable th {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #bdc3c7;
+            font-weight: 600;
+        }
+
+        #orderItemsTable td {
+            padding: 0.75rem;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        #orderItemsTable tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        #orderItemsTable .btn-sm {
+            padding: 0.3rem 0.6rem;
+            font-size: 0.75rem;
+        }
+
+        /* Prevent double scrollbars */
+        #orderForm {
+            display: flex;
+            flex-direction: column;
+        }
+
+        #orderForm > div {
+            flex-shrink: 0;
+        }
+
+        /* Allow only items table to scroll */
+        .items-table-container {
+            flex: 1;
+            overflow-y: auto;
+            min-height: 200px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+        }
+
+        .order-totals {
+            background-color: #f8f9fa;
+            padding: 1rem;
+            border-radius: 4px;
+            display: grid;
+            gap: 0.5rem;
+            max-width: 300px;
+            margin-left: auto;
+        }
+
+        .order-totals-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .order-totals-row.total {
+            font-weight: bold;
+            font-size: 1.1rem;
+            border-bottom: 2px solid #3498db;
+        }
+
+        @media (max-width: 768px) {
+            .tabs {
+                flex-wrap: wrap;
+            }
+
+            .tab-button {
+                padding: 0.75rem 1rem;
+                font-size: 0.9rem;
+            }
+
+            .filters {
+                flex-direction: column;
+            }
+
+            .filters input,
+            .filters select {
+                min-width: 100%;
+                flex: 1 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-container">
+            <a href="../pages/dashboard.html" class="nav-logo">🏭 Smart Warehouse</a>
+            <ul class="nav-links">
+                <li><a href="../pages/dashboard.html">Dashboard</a></li>
+                <li><a href="../pages/inventory.html">Inventory</a></li>
+                <li><a href="../pages/sales.html">Sales</a></li>
+                <li><a href="#profile" onclick="showProfileModal()">Profile</a></li>
+            </ul>
+            <div class="nav-user">
+                <div class="user-info">Welcome, User</div>
+                <button id="logoutBtn" class="btn-logout">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="actions-header">
+            <h1>💼 Sales Management</h1>
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="salesManager.openModal('addCustomerModal')">+ Add Customer</button>
+                <button class="btn btn-secondary" onclick="salesManager.openModal('createOrderModal')">+ Create Order</button>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab-button active" onclick="switchTab('customers-tab')">👥 Customers</button>
+            <button class="tab-button" onclick="switchTab('orders-tab')">📋 Orders</button>
+        </div>
+
+        <!-- Customers Tab -->
+        <div id="customers-tab" class="tab-content active">
+            <!-- Stats -->
+            <div class="stats-container">
+                <div class="stat-card">
+                    <h3>Total Customers</h3>
+                    <div class="stat-value" id="totalCustomers">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Active Orders</h3>
+                    <div class="stat-value" id="totalOrders">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Total Revenue</h3>
+                    <div class="stat-value" id="totalRevenue">$0.00</div>
+                </div>
+            </div>
+
+            <!-- Search -->
+            <div class="filters">
+                <input 
+                    type="text" 
+                    id="searchCustomers" 
+                    placeholder="Search customers by name, email, or phone..."
+                    style="flex: 2;"
+                >
+            </div>
+
+            <!-- Customers Table -->
+            <div class="table-container">
+                <table id="customersTable">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>City, State</th>
+                            <th>Orders</th>
+                            <th>Total Spent</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 2rem;">Loading customers...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div id="customersPagination" style="display: flex; justify-content: center; gap: 1rem; margin: 2rem 0;"></div>
+        </div>
+
+                <!-- Orders Tab -->
+        <div id="orders-tab" class="report-content active">
+            <!-- Stats -->
+            <div class="stats-container">
+                <div class="stat-card">
+                    <h3>Total Orders</h3>
+                    <div class="stat-value" id="totalOrdersCount">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Average Order Value</h3>
+                    <div class="stat-value" id="avgOrderValue">$0.00</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Pending Orders</h3>
+                    <div class="stat-value" id="pendingOrders">0</div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="filters">
+                <input 
+                    type="text" 
+                    id="searchOrders" 
+                    placeholder="Search orders..."
+                    style="flex: 2;"
+                >
+                <select id="statusFilter">
+                    <option value="">All Statuses</option>
+                    <option value="PENDING">Pending</option>
+                    <option value="CONFIRMED">Confirmed</option>
+                    <option value="SHIPPED">Shipped</option>
+                    <option value="DELIVERED">Delivered</option>
+                    <option value="CANCELLED">Cancelled</option>
+                </select>
+                <button class="btn btn-secondary" onclick="salesManager.generateBulkInvoices()">📄 Generate Invoices</button>
+            </div>
+
+            <!-- Orders Table -->
+            <div class="table-container">
+                <table id="ordersTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 40px;"><input type="checkbox" id="selectAllOrders" onchange="selectAllOrders(this)"></th>
+                            <th>Order Number</th>
+                            <th>Date</th>
+                            <th>Products</th>
+                            <th>Amount</th>
+                            <th>Qty</th>
+                            <th>Status</th>
+                            <th>Payment</th>
+                            <th>Invoice</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="10" style="text-align: center; padding: 2rem;">Loading orders...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div id="ordersPagination" style="display: flex; justify-content: center; gap: 1rem; margin: 2rem 0;"></div>
+        </div>
+
+        <script>
+            function selectAllOrders(checkbox) {
+                const checkboxes = document.querySelectorAll('input[name="order-select"]');
+                checkboxes.forEach(cb => cb.checked = checkbox.checked);
+            }
+        </script>
+    </div>
+
+    <!-- Add Customer Modal -->
+    <div id="addCustomerModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add New Customer</h2>
+                <button type="button" class="modal-close" onclick="salesManager.closeModal('addCustomerModal')">&times;</button>
+            </div>
+            <form id="customerForm">
+                <div class="form-group">
+                    <label for="customerName">Customer Name *</label>
+                    <input type="text" id="customerName" required placeholder="Enter customer name">
+                </div>
+                <div class="form-group">
+                    <label for="customerEmail">Email *</label>
+                    <input type="email" id="customerEmail" required placeholder="Enter email">
+                </div>
+                <div class="form-group">
+                    <label for="customerPhone">Phone *</label>
+                    <input type="tel" id="customerPhone" required placeholder="Enter phone number">
+                </div>
+                <div class="form-group">
+                    <label for="customerAddress">Address *</label>
+                    <input type="text" id="customerAddress" required placeholder="Enter street address">
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                    <div class="form-group">
+                        <label for="customerCity">City *</label>
+                        <input type="text" id="customerCity" required placeholder="Enter city">
+                    </div>
+                    <div class="form-group">
+                        <label for="customerState">State *</label>
+                        <input type="text" id="customerState" required placeholder="Enter state">
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                    <div class="form-group">
+                        <label for="customerZip">Zip Code *</label>
+                        <input type="text" id="customerZip" required placeholder="Enter zip code">
+                    </div>
+                    <div class="form-group">
+                        <label for="customerCountry">Country *</label>
+                        <input type="text" id="customerCountry" required placeholder="Enter country">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary" style="margin-top: 1.5rem; margin-bottom: 0;">Create Customer</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Customer Modal -->
+    <div id="editCustomerModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Customer</h2>
+                <button type="button" class="modal-close" onclick="salesManager.closeModal('editCustomerModal')">&times;</button>
+            </div>
+            <form id="editCustomerForm">
+                <input type="hidden" id="editCustomerId">
+                <div class="form-group">
+                    <label for="editCustomerName">Customer Name</label>
+                    <input type="text" id="editCustomerName" required>
+                </div>
+                <div class="form-group">
+                    <label for="editCustomerEmail">Email</label>
+                    <input type="email" id="editCustomerEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="editCustomerPhone">Phone</label>
+                    <input type="tel" id="editCustomerPhone" required>
+                </div>
+                <div class="form-group">
+                    <label for="editCustomerAddress">Address</label>
+                    <input type="text" id="editCustomerAddress" required>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                    <div class="form-group">
+                        <label for="editCustomerCity">City</label>
+                        <input type="text" id="editCustomerCity" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editCustomerState">State</label>
+                        <input type="text" id="editCustomerState" required>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                    <div class="form-group">
+                        <label for="editCustomerZip">Zip Code</label>
+                        <input type="text" id="editCustomerZip" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editCustomerCountry">Country</label>
+                        <input type="text" id="editCustomerCountry" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary" style="margin-top: 1.5rem; margin-bottom: 0;">Update Customer</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Create Order Modal -->
+    <div id="createOrderModal" class="modal">
+        <div class="modal-content" style="max-width: 700px; max-height: 90vh; display: flex; flex-direction: column;">
+            <div class="modal-header" style="flex-shrink: 0;">
+                <h2>Create Sales Order</h2>
+                <button type="button" class="modal-close" onclick="salesManager.closeModal('createOrderModal')">&times;</button>
+            </div>
+            
+            <form id="orderForm" style="flex: 1; overflow-y: auto; padding: 1.5rem; display: flex; flex-direction: column;">
+                <div class="form-group">
+                    <label for="orderCustomer">Customer *</label>
+                    <select id="orderCustomer" class="customer-select" required></select>
+                </div>
+
+                <h3 style="margin-top: 1.5rem; margin-bottom: 1rem;">Add Items</h3>
+                
+                <div class="form-group">
+                    <label for="orderProduct">Product</label>
+                    <select id="orderProduct" style="padding: 0.75rem; border: 1px solid #bdc3c7; border-radius: 4px; font-size: 0.9rem;">
+                        <option value="">Loading products...</option>
+                    </select>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem;">
+                    <div class="form-group">
+                        <label for="orderQuantity">Quantity</label>
+                        <input type="number" id="orderQuantity" min="1" placeholder="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="orderPrice">Price</label>
+                        <input type="number" id="orderPrice" step="0.01" min="0" placeholder="0.00" readonly style="background-color: #ecf0f1;">
+                    </div>
+                    <div style="display: flex; align-items: flex-end;">
+                        <button type="button" id="addItemBtn" class="btn btn-secondary" style="width: 100%;">Add Item</button>
+                    </div>
+                </div>
+
+                <h3 style="margin-top: 1.5rem; margin-bottom: 1rem;">Order Items</h3>
+
+                <div style="overflow-y: auto; flex: 1; border: 1px solid #bdc3c7; border-radius: 4px; margin-bottom: 1rem;">
+                    <table id="orderItemsTable" style="width: 100%; border-collapse: collapse;">
+                        <thead style="position: sticky; top: 0; background-color: #ecf0f1;">
+                            <tr>
+                                <th style="padding: 0.75rem; text-align: left; border-bottom: 1px solid #bdc3c7;">Product</th>
+                                <th style="padding: 0.75rem; text-align: center; border-bottom: 1px solid #bdc3c7;">Qty</th>
+                                <th style="padding: 0.75rem; text-align: right; border-bottom: 1px solid #bdc3c7;">Price</th>
+                                <th style="padding: 0.75rem; text-align: right; border-bottom: 1px solid #bdc3c7;">Total</th>
+                                <th style="padding: 0.75rem; text-align: center; border-bottom: 1px solid #bdc3c7;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="order-totals" style="margin-bottom: 1rem;">
+                    <div class="order-totals-row">
+                        <span>Subtotal:</span>
+                        <span id="orderSubtotal">$0.00</span>
+                    </div>
+                    <div class="order-totals-row">
+                        <span>Tax (10%):</span>
+                        <span id="orderTax">$0.00</span>
+                    </div>
+                    <div class="order-totals-row total">
+                        <span>Total:</span>
+                        <span id="orderTotal">$0.00</span>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label for="orderNotes">Order Notes</label>
+                    <textarea id="orderNotes" rows="2" placeholder="Enter any order notes" style="resize: vertical;"></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="flex-shrink: 0;">Create Order</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Order Modal -->
+    <div id="editOrderModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2>Edit Order</h2>
+                <button type="button" class="modal-close" onclick="salesManager.closeModal('editOrderModal')">&times;</button>
+            </div>
+            <form id="editOrderForm" style="padding: 1.5rem;">
+                <input type="hidden" id="editOrderId">
+                
+                <div class="form-group">
+                    <label for="editOrderNumber">Order Number</label>
+                    <input type="text" id="editOrderNumber" readonly style="background-color: #ecf0f1;">
+                </div>
+
+                <h3 style="margin-top: 1.5rem; margin-bottom: 1rem;">Order Items</h3>
+                <div style="border: 1px solid #bdc3c7; border-radius: 4px; overflow: auto; max-height: 200px; margin-bottom: 1rem;">
+                    <table id="editOrderItemsTable" style="width: 100%; border-collapse: collapse;">
+                        <thead style="position: sticky; top: 0; background-color: #ecf0f1;">
+                            <tr>
+                                <th style="padding: 0.75rem; text-align: left; border-bottom: 1px solid #bdc3c7;">Product</th>
+                                <th style="padding: 0.75rem; text-align: center; border-bottom: 1px solid #bdc3c7;">Qty</th>
+                                <th style="padding: 0.75rem; text-align: right; border-bottom: 1px solid #bdc3c7;">Price</th>
+                                <th style="padding: 0.75rem; text-align: right; border-bottom: 1px solid #bdc3c7;">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <div style="background-color: #f8f9fa; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
+                    <p style="display: flex; justify-content: space-between;">
+                        <strong>Order Total:</strong>
+                        <strong id="editOrderTotal">$0.00</strong>
+                    </p>
+                </div>
+
+                <div class="form-group">
+                    <label for="editOrderStatus">Order Status *</label>
+                    <select id="editOrderStatus" required>
+                        <option value="PENDING">Pending</option>
+                        <option value="CONFIRMED">Confirmed</option>
+                        <option value="SHIPPED">Shipped</option>
+                        <option value="DELIVERED">Delivered</option>
+                        <option value="CANCELLED">Cancelled</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="editPaymentStatus">Payment Status *</label>
+                    <select id="editPaymentStatus" required>
+                        <option value="UNPAID">Unpaid</option>
+                        <option value="PARTIAL">Partial</option>
+                        <option value="PAID">Paid</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="editOrderNotes">Order Notes</label>
+                    <textarea id="editOrderNotes" rows="3"></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Update Order</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- View Order Modal -->
+    <div id="viewOrderModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <!-- Content loaded dynamically -->
+        </div>
+    </div>
+
+    <!-- Customer Orders Modal -->
+    <div id="customerOrdersModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <!-- Content loaded dynamically -->
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Remove active class from all buttons
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+
+            // Add active class to clicked button
+            event.target.classList.add('active');
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            const editCustomerForm = document.getElementById('editCustomerForm');
+            if (editCustomerForm) {
+                editCustomerForm.addEventListener('submit', (e) => salesManager.handleUpdateCustomer(e));
+            }
+
+            const editOrderForm = document.getElementById('editOrderForm');
+            if (editOrderForm) {
+                editOrderForm.addEventListener('submit', (e) => salesManager.handleUpdateOrder(e));
+            }
+
+            // Close modal when clicking outside
+            window.addEventListener('click', (e) => {
+                if (e.target.classList.contains('modal')) {
+                    e.target.classList.remove('show');
+                }
+            });
+        });
+    </script>
+
+    <script src="../js/session.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/inventory.js"></script>
+    <script src="../js/sales.js"></script>
+</body>
+</html>

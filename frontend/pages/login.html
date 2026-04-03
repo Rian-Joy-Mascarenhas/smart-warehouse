@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Smart Warehouse</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <nav>
+        <div class="nav-container">
+            <a href="../index.html" class="nav-logo">🏭 Smart Warehouse</a>
+            <ul class="nav-links">
+                <li><a href="register.html">Register</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="form-container">
+            <h1 style="text-align: center; margin-bottom: 2rem; color: #2c3e50;">Login to Your Account</h1>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" placeholder="Enter your email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <div style="position: relative;">
+                        <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                        <button type="button" class="toggle-password" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 1.2rem;">👁️</button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">Login</button>
+            </form>
+
+            <div class="form-link">
+                Don't have an account? <a href="register.html">Register here</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/session.js"></script>
+    <script src="../js/auth.js"></script>
+</body>
+</html>

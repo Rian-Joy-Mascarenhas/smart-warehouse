@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics & Reports - Smart Warehouse</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        .report-tabs {
+            display: flex;
+            border-bottom: 2px solid #bdc3c7;
+            margin-bottom: 2rem;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .report-tab-button {
+            background: none;
+            border: none;
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            font-size: 1rem;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            color: #7f8c8d;
+        }
+
+        .report-tab-button.active {
+            border-bottom-color: #3498db;
+            color: #3498db;
+            font-weight: bold;
+        }
+
+        .report-content {
+            display: none;
+        }
+
+        .report-content.active {
+            display: block;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-box {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #3498db;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            position: relative;
+            height: 400px;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--text-dark);
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #ecf0f1;
+        }
+
+        .filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filters select {
+            padding: 0.75rem;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .alert-box {
+            background-color: #fff3cd;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            border-left: 4px solid #ffc107;
+        }
+
+        .alert-box h3 {
+            margin-top: 0;
+            color: #856404;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 2rem;
+            color: #7f8c8d;
+        }
+
+        @media (max-width: 768px) {
+            .report-tabs {
+                flex-direction: column;
+            }
+
+            .report-tab-button {
+                padding: 0.75rem 1rem;
+            }
+
+            .chart-container {
+                height: 300px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-container">
+            <a href="../pages/dashboard.html" class="nav-logo">🏭 Smart Warehouse</a>
+            <ul class="nav-links">
+                <li><a href="../pages/dashboard.html">Dashboard</a></li>
+                <li><a href="../pages/inventory.html">Inventory</a></li>
+                <li><a href="../pages/sales.html">Sales</a></li>
+                <li><a href="../pages/invoices.html">Invoices</a></li>
+                <li><a href="../pages/analytics.html">Analytics</a></li>
+                <li><a href="#profile" onclick="showProfileModal()">Profile</a></li>
+            </ul>
+            <div class="nav-user">
+                <div class="user-info">Welcome, User</div>
+                <button id="logoutBtn" class="btn-logout">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1>📊 Analytics & Reports</h1>
+
+        <!-- Report Tabs -->
+        <div class="report-tabs">
+            <button class="report-tab-button active" onclick="switchReportTab('dashboard-tab')">📈 Dashboard</button>
+            <button class="report-tab-button" onclick="switchReportTab('sales-tab')">💰 Sales Analysis</button>
+            <button class="report-tab-button" onclick="switchReportTab('inventory-tab')">📦 Inventory Analysis</button>
+            <button class="report-tab-button" onclick="switchReportTab('invoice-tab')">📄 Invoice Analysis</button>
+        </div>
+
+        <!-- Dashboard Tab -->
+        <div id="dashboard-tab" class="report-content active">
+            <h2 style="margin-bottom: 1.5rem;">Dashboard Overview</h2>
+
+            <!-- Key Metrics -->
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-label">Total Sales</div>
+                    <div class="stat-value" id="dashSalesTotal">$0.00</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Orders</div>
+                    <div class="stat-value" id="dashOrdersCount">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Total Invoices</div>
+                    <div class="stat-value" id="dashInvoicesTotalCount">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Invoice Revenue</div>
+                    <div class="stat-value" id="dashInvoicesRevenue">$0.00</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Total Products</div>
+                    <div class="stat-value" id="dashProductsCount">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Inventory Value</div>
+                    <div class="stat-value" id="dashInventoryValue">$0.00</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Low Stock Items</div>
+                    <div class="stat-value" id="dashLowStockCount">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Total Customers</div>
+                    <div class="stat-value" id="dashCustomersCount">0</div>
+                </div>
+            </div>
+
+            <!-- Month Comparison -->
+            <div style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); margin-bottom: 2rem;">
+                <h3>Month-over-Month Comparison</h3>
+                <div id="monthlyComparisonContainer"></div>
+            </div>
+
+            <!-- Top Performers -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                <!-- Top Products -->
+                <div class="table-container">
+                    <div style="padding: 1.5rem; border-bottom: 1px solid #ecf0f1;">
+                        <h3 style="margin: 0;">🏆 Top Products</h3>
+                    </div>
+                    <table id="topProductsTable" style="width: 100%;">
+                        <thead>
+                            <tr style="background-color: #ecf0f1;">
+                                <th style="padding: 0.75rem; text-align: left;">Rank</th>
+                                <th style="padding: 0.75rem; text-align: left;">Product</th>
+                                <th style="padding: 0.75rem; text-align: center;">Qty Sold</th>
+                                <th style="padding: 0.75rem; text-align: right;">Revenue</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <!-- Top Customers -->
+                <div class="table-container">
+                    <div style="padding: 1.5rem; border-bottom: 1px solid #ecf0f1;">
+                        <h3 style="margin: 0;">👥 Top Customers</h3>
+                    </div>
+                    <table id="topCustomersTable" style="width: 100%;">
+                        <thead>
+                            <tr style="background-color: #ecf0f1;">
+                                <th style="padding: 0.75rem; text-align: left;">Rank</th>
+                                <th style="padding: 0.75rem; text-align: left;">Customer</th>
+                                <th style="padding: 0.75rem; text-align: center;">Orders</th>
+                                <th style="padding: 0.75rem; text-align: right;">Total Spent</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sales Analysis Tab -->
+        <div id="sales-tab" class="report-content">
+            <h2 style="margin-bottom: 1.5rem;">Sales Analysis</h2>
+
+            <!-- Period Filter -->
+            <div class="filters">
+                <label for="periodSelect" style="display: flex; align-items: center; gap: 0.5rem;">
+                    <strong>Period:</strong>
+                    <select id="periodSelect">
+                        <option value="7">Last 7 Days</option>
+                        <option value="30" selected>Last 30 Days</option>
+                        <option value="90">Last 90 Days</option>
+                        <option value="365">Last Year</option>
+                    </select>
+                </label>
+            </div>
+
+            <!-- Sales by Period Chart -->
+            <div class="chart-container">
+                <canvas id="salesChart"></canvas>
+            </div>
+
+            <!-- Sales by Period Table -->
+            <div class="table-container">
+                <div style="padding: 1.5rem; border-bottom: 1px solid #ecf0f1;">
+                    <h3 style="margin: 0;">Sales Data</h3>
+                </div>
+                <table id="salesByPeriodTable" style="width: 100%;">
+                    <thead>
+                        <tr style="background-color: #ecf0f1;">
+                            <th style="padding: 0.75rem; text-align: left;">Date</th>
+                            <th style="padding: 0.75rem; text-align: center;">Orders</th>
+                            <th style="padding: 0.75rem; text-align: right;">Total Sales</th>
+                            <th style="padding: 0.75rem; text-align: right;">Avg Order Value</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Inventory Analysis Tab -->
+        <div id="inventory-tab" class="report-content">
+            <h2 style="margin-bottom: 1.5rem;">Inventory Analysis</h2>
+
+            <!-- Low Stock Alerts -->
+            <div id="lowStockAlerts"></div>
+
+            <!-- Inventory by Category -->
+            <h3 class="section-title">Inventory Value by Category</h3>
+            <div class="table-container">
+                <table id="inventoryByCategoryTable" style="width: 100%;">
+                    <thead>
+                        <tr style="background-color: #ecf0f1;">
+                            <th style="padding: 0.75rem; text-align: left;">Category</th>
+                            <th style="padding: 0.75rem; text-align: center;">Products</th>
+                            <th style="padding: 0.75rem; text-align: center;">Total Qty</th>
+                            <th style="padding: 0.75rem; text-align: right;">Total Value</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Invoice Analysis Tab -->
+        <div id="invoice-tab" class="report-content">
+            <h2 style="margin-bottom: 1.5rem;">Invoice Analysis</h2>
+
+            <!-- Invoice Payment Status -->
+            <h3 class="section-title">Invoice Payment Status</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                <div class="stat-box">
+                    <div class="stat-label">Paid Invoices</div>
+                    <div class="stat-value" id="paidInvoicesCount">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Unpaid Invoices</div>
+                    <div class="stat-value" id="unpaidInvoicesCount">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Partial Invoices</div>
+                    <div class="stat-value" id="partialInvoicesCount">0</div>
+                </div>
+            </div>
+
+            <!-- Overdue Invoices Alert -->
+            <h3 class="section-title">⚠️ Overdue Invoices</h3>
+            <div id="overdueInvoicesContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        function switchReportTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.report-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Remove active class from all buttons
+            document.querySelectorAll('.report-tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+
+            // Add active class to clicked button
+            event.target.classList.add('active');
+        }
+
+        // Initialize charts on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize sales chart
+            const chartCanvas = document.getElementById('salesChart');
+            if (chartCanvas) {
+                window.salesChart = new Chart(chartCanvas, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'Daily Sales',
+                            data: [],
+                            borderColor: '#3498db',
+                            backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                            tension: 0.1,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Close modal when clicking outside
+            window.addEventListener('click', (e) => {
+                if (e.target.classList.contains('modal')) {
+                    e.target.classList.remove('show');
+                }
+            });
+        });
+
+        // Helper function to display low stock alerts
+        function displayLowStockAlerts(items) {
+            const container = document.getElementById('lowStockAlerts');
+            if (!container || items.length === 0) return;
+
+            let html = '';
+            if (items.length > 0) {
+                html = `
+                    <div class="alert-box">
+                        <h3>⚠️ Low Stock Alerts (${items.length} items)</h3>
+                        <div class="table-container">
+                            <table style="width: 100%;">
+                                <thead>
+                                    <tr style="background-color: #fff3cd;">
+                                        <th style="padding: 0.75rem; text-align: left;">SKU</th>
+                                        <th style="padding: 0.75rem; text-align: left;">Product</th>
+                                        <th style="padding: 0.75rem; text-align: center;">Current</th>
+                                        <th style="padding: 0.75rem; text-align: center;">Min Stock</th>
+                                        <th style="padding: 0.75rem; text-align: center;">Shortage</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="lowStockAlertsTable"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+
+            // Populate low stock table
+            const tbody = document.getElementById('lowStockAlertsTable');
+            if (tbody && items.length > 0) {
+                items.forEach(item => {
+                    const row = document.createElement('tr');
+                    row.style.backgroundColor = '#fff3cd';
+                    row.innerHTML = `
+                        <td style="padding: 0.75rem;">${item.sku}</td>
+                        <td style="padding: 0.75rem;">${item.name}</td>
+                        <td style="padding: 0.75rem; text-align: center;">${item.quantity}</td>
+                        <td style="padding: 0.75rem; text-align: center;">${item.min_stock}</td>
+                        <td style="padding: 0.75rem; text-align: center; color: #e74c3c; font-weight: bold;">${item.min_stock - item.quantity}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+        }
+
+        // Helper function to display overdue invoices
+        function displayOverdueInvoices(invoices) {
+            const container = document.getElementById('overdueInvoicesContainer');
+            if (!container) return;
+
+            if (invoices.length === 0) {
+                container.innerHTML = '<div class="no-data">✓ No overdue invoices</div>';
+                return;
+            }
+
+            let html = '<div class="table-container"><table style="width: 100%;"><thead><tr style="background-color: #f8d7da;"><th style="padding: 0.75rem; text-align: left;">Invoice</th><th style="padding: 0.75rem; text-align: left;">Customer</th><th style="padding: 0.75rem; text-align: right;">Amount</th><th style="padding: 0.75rem; text-align: center;">Days Overdue</th></tr></thead><tbody>';
+
+            invoices.forEach(invoice => {
+                html += `
+                    <tr>
+                        <td style="padding: 0.75rem;">${invoice.invoice_number}</td>
+                        <td style="padding: 0.75rem;">${invoice.customer_name}</td>
+                        <td style="padding: 0.75rem; text-align: right;">$${invoice.total_amount.toFixed(2)}</td>
+                        <td style="padding: 0.75rem; text-align: center; color: #e74c3c; font-weight: bold;">${invoice.days_overdue}</td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table></div>';
+            container.innerHTML = html;
+        }
+    </script>
+
+    <script src="../js/session.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/analytics.js"></script>
+</body>
+</html>

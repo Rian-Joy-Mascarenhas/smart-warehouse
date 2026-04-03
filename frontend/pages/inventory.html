@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Management - Smart Warehouse</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <style>
+        .stock-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .low-stock {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .normal-stock {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .btn-sm {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.85rem;
+            margin: 0 0.2rem;
+        }
+
+        .btn-edit {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .btn-delete {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .btn-adjust {
+            background-color: #f39c12;
+            color: white;
+        }
+
+        .btn-sm:hover {
+            opacity: 0.8;
+        }
+
+        #pagination {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #3498db;
+            margin: 1rem 0;
+        }
+
+        .filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filters input,
+        .filters select {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .actions-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .actions-header h2 {
+            margin: 0;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-container">
+            <a href="../pages/dashboard.html" class="nav-logo">🏭 Smart Warehouse</a>
+            <ul class="nav-links">
+                <li><a href="../pages/dashboard.html">Dashboard</a></li>
+                <li><a href="../pages/inventory.html">Inventory</a></li>
+                <li><a href="#profile" onclick="showProfileModal()">Profile</a></li>
+            </ul>
+            <div class="nav-user">
+                <div class="user-info">Welcome, User</div>
+                <button id="logoutBtn" class="btn-logout">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="actions-header">
+            <h1>📦 Inventory Management</h1>
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="inventoryManager.openModal('addProductModal')">+ Add Product</button>
+                <button class="btn btn-secondary" onclick="inventoryManager.openModal('addCategoryModal')">+ Add Category</button>
+            </div>
+        </div>
+
+        <!-- Statistics -->
+        <div class="stats-container">
+            <div class="stat-card">
+                <h3>Total Products</h3>
+                <div class="stat-value" id="totalProducts">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Low Stock Items</h3>
+                <div class="stat-value" id="lowStockCount">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Total Inventory Value</h3>
+                <div class="stat-value" id="totalInventoryValue">$0.00</div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters">
+            <input 
+                type="text" 
+                id="searchProducts" 
+                placeholder="Search by product name or SKU..." 
+                style="flex: 2;"
+            >
+            <select id="categoryFilter">
+                <option value="">All Categories</option>
+            </select>
+        </div>
+
+        <!-- Products Table -->
+        <div class="table-container">
+            <table id="productsTable">
+                <thead>
+                    <tr>
+                        <th>SKU</th>
+                        <th>Product Name</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                        <th>Min Stock</th>
+                        <th>Max Stock</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="8" style="text-align: center; padding: 2rem;">Loading products...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div id="pagination"></div>
+    </div>
+
+    <!-- Add Product Modal -->
+    <div id="addProductModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add New Product</h2>
+                <button type="button" class="modal-close" onclick="inventoryManager.closeModal('addProductModal')">&times;</button>
+            </div>
+            <form id="productForm">
+                <div class="form-group">
+                    <label for="productName">Product Name *</label>
+                    <input type="text" id="productName" required placeholder="Enter product name">
+                </div>
+                <div class="form-group">
+                    <label for="productSku">SKU (Stock Keeping Unit) *</label>
+                    <input type="text" id="productSku" required placeholder="e.g., PROD-001">
+                </div>
+                <div class="form-group">
+                    <label for="productCategory">Category</label>
+                    <select id="productCategory" class="category-select"></select>
+                </div>
+                <div class="form-group">
+                    <label for="productPrice">Price *</label>
+                    <input type="number" id="productPrice" required step="0.01" min="0" placeholder="0.00">
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                    <div class="form-group">
+                        <label for="productQuantity">Quantity *</label>
+                        <input type="number" id="productQuantity" required min="0" placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="productMinStock">Min Stock *</label>
+                        <input type="number" id="productMinStock" required min="0" placeholder="0">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="productMaxStock">Max Stock *</label>
+                    <input type="number" id="productMaxStock" required min="0" placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label for="productDescription">Description</label>
+                    <textarea id="productDescription" placeholder="Enter product description"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" style="margin-top: 1.5rem; margin-bottom: 0;">Create Product</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Product Modal -->
+    <div id="editProductModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Product</h2>
+                <button type="button" class="modal-close" onclick="inventoryManager.closeModal('editProductModal')">&times;</button>
+            </div>
+            <form id="editProductForm">
+                <input type="hidden" id="editProductId">
+                <div class="form-group">
+                    <label for="editProductName">Product Name</label>
+                    <input type="text" id="editProductName" required>
+                </div>
+                <div class="form-group">
+                    <label for="editProductSku">SKU</label>
+                    <input type="text" id="editProductSku" required>
+                </div>
+                <div class="form-group">
+                    <label for="editProductCategory">Category</label>
+                    <select id="editProductCategory" class="category-select"></select>
+                </div>
+                <div class="form-group">
+                    <label for="editProductPrice">Price</label>
+                    <input type="number" id="editProductPrice" required step="0.01" min="0">
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label for="editProductMinStock">Min Stock</label>
+                        <input type="number" id="editProductMinStock" required min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="editProductMaxStock">Max Stock</label>
+                        <input type="number" id="editProductMaxStock" required min="0">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="editProductDescription">Description</label>
+                    <textarea id="editProductDescription" rows="3"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Update Product</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Adjust Stock Modal -->
+    <div id="adjustStockModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Adjust Stock</h2>
+                <button type="button" class="modal-close" onclick="inventoryManager.closeModal('adjustStockModal')">&times;</button>
+            </div>
+            <form id="adjustStockForm">
+                <input type="hidden" id="adjustProductId">
+                <div class="form-group">
+                    <label for="quantityChange">Quantity Change *</label>
+                    <input 
+                        type="number" 
+                        id="quantityChange" 
+                        required 
+                        placeholder="Use positive for adding, negative for removing"
+                    >
+                    <small style="color: #7f8c8d;">Enter positive number to add stock, negative to remove</small>
+                </div>
+                <div class="form-group">
+                    <label for="adjustReason">Reason *</label>
+                    <textarea 
+                        id="adjustReason" 
+                        required 
+                        rows="3" 
+                        placeholder="Enter reason for stock adjustment (e.g., Received from supplier, Damaged inventory)"
+                    ></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Adjust Stock</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Category Modal -->
+    <div id="addCategoryModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add Category</h2>
+                <button type="button" class="modal-close" onclick="inventoryManager.closeModal('addCategoryModal')">&times;</button>
+            </div>
+            <form id="categoryForm">
+                <div class="form-group">
+                    <label for="categoryName">Category Name *</label>
+                    <input type="text" id="categoryName" required placeholder="Enter category name">
+                </div>
+                <div class="form-group">
+                    <label for="categoryDescription">Description</label>
+                    <textarea id="categoryDescription" rows="3" placeholder="Enter category description"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Create Category</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Event listener for edit form
+        document.addEventListener('DOMContentLoaded', () => {
+            const editForm = document.getElementById('editProductForm');
+            if (editForm) {
+                editForm.addEventListener('submit', (e) => inventoryManager.handleUpdateProduct(e));
+            }
+
+            const adjustForm = document.getElementById('adjustStockForm');
+            if (adjustForm) {
+                adjustForm.addEventListener('submit', (e) => inventoryManager.handleAdjustStock(e));
+            }
+
+            // Close modal when clicking outside
+            window.addEventListener('click', (e) => {
+                if (e.target.classList.contains('modal')) {
+                    e.target.classList.remove('show');
+                }
+            });
+        });
+    </script>
+
+    <script src="../js/session.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/inventory.js"></script>
+</body>
+</html>

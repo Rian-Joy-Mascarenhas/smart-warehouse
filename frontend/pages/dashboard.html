@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Smart Warehouse</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <nav>
+        <div class="nav-container">
+            <a href="dashboard.html" class="nav-logo">🏭 Smart Warehouse</a>
+            <ul class="nav-links">
+                <li><a href="dashboard.html">Dashboard</a></li>
+                <li><a href="#profile" onclick="showProfileModal()">Profile</a></li>
+                <li><a href="#settings" onclick="showSettingsModal()">Settings</a></li>
+                <li><a href="inventory.html">Inventory</a></li>
+            </ul>
+            <div class="nav-user">
+                <div class="user-info">Welcome, User</div>
+                <button id="logoutBtn" class="btn-logout">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1 style="margin-bottom: 2rem; color: #2c3e50;">Welcome to Smart Warehouse Dashboard</h1>
+
+        <div class="dashboard-container">
+            <div class="card">
+                <h3>📦 Inventory</h3>
+                <p>Manage your warehouse inventory</p>
+                <a href="inventory.html" class="btn btn-secondary">Manage Inventory</a>
+            </div>
+
+            <div class="card">
+                <h3>🛒 Sales</h3>
+                <p>Track and manage sales orders</p>
+                <a href="sales.html" class="btn btn-secondary">View Sales</a>
+            </div>
+
+            <div class="card">
+                <h3>📄 Invoices</h3>
+                <p>Generate and manage invoices</p>
+                <a href="invoices.html" class="btn btn-secondary">View Invoices</a>
+            </div>
+
+            <div class="card">
+                <h3>📊 Reports and Analytics</h3>
+                <p>View analytics and reports</p>
+                <a href="analytics.html" class="btn btn-secondary">View Reports and Analytics</a>
+            </div>
+        </div>
+
+        <div class="table-container" style="margin-top: 2rem;">
+            <h2>Quick Stats</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Module</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Inventory Management</td>
+                        <td><span style="color: #27ae60;">✓ Active</span></td>
+                        <td><button class="btn btn-secondary" onclick="navigateTo('#inventory')">Manage</button></td>
+                    </tr>
+                    <tr>
+                        <td>Sales Management</td>
+                        <td><span style="color: #27ae60;">✓ Active</span></td>
+                        <td><button class="btn btn-secondary" onclick="navigateTo('#sales')">Manage</button></td>
+                    </tr>
+                    <tr>
+                        <td>Invoice Generation</td>
+                        <td><span style="color: #27ae60;">✓ Active</span></td>
+                        <td><button class="btn btn-secondary" onclick="navigateTo('#invoices')">Manage</button></td>
+                    </tr>
+                    <tr>
+                        <td>Reports & Analytics</td>
+                        <td><span style="color: #27ae60;">✓ Active</span></td>
+                        <td><button class="btn btn-secondary" onclick="navigateTo('#reports')">View</button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div id="profileModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>My Profile</h2>
+                <button type="button" class="modal-close" onclick="closeModal('profileModal')">&times;</button>
+            </div>
+            <form id="profileForm">
+                <div class="form-group">
+                    <label for="profileUsername">Username</label>
+                    <input type="text" id="profileUsername" readonly style="background-color: #ecf0f1;">
+                </div>
+                <div class="form-group">
+                    <label for="profileFullName">Full Name</label>
+                    <input type="text" id="profileFullName" placeholder="Enter full name">
+                </div>
+                <div class="form-group">
+                    <label for="profileEmail">Email</label>
+                    <input type="email" id="profileEmail" placeholder="Enter email">
+                </div>
+                <div class="form-group">
+                    <label for="profileCreatedAt">Member Since</label>
+                    <input type="text" id="profileCreatedAt" readonly style="background-color: #ecf0f1;">
+                </div>
+                <button type="submit" class="btn btn-primary">Update Profile</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Account Settings</h2>
+                <button type="button" class="modal-close" onclick="closeModal('settingsModal')">&times;</button>
+            </div>
+            <form id="passwordForm">
+                <div class="form-group">
+                    <label for="oldPassword">Old Password</label>
+                    <input type="password" id="oldPassword" placeholder="Enter old password" required>
+                </div>
+                <div class="form-group">
+                    <label for="newPassword">New Password</label>
+                    <input type="password" id="newPassword" placeholder="Enter new password" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm Password</label>
+                    <input type="password" id="confirmPassword" placeholder="Confirm new password" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Change Password</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Modal functions
+        function showProfileModal() {
+            document.getElementById('profileModal').classList.add('show');
+        }
+
+        function showSettingsModal() {
+            document.getElementById('settingsModal').classList.add('show');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+        }
+
+        function navigateTo(section) {
+            alert('Coming soon: ' + section);
+        }
+
+        // Close modal when clicking outside
+        window.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal')) {
+                e.target.classList.remove('show');
+            }
+        });
+
+        // Check authentication on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!sessionManager.isAuthenticated()) {
+                window.location.href = 'login.html';
+            }
+        });
+    </script>
+
+    <script src="../js/session.js"></script>
+    <script src="../js/auth.js"></script>
+</body>
+</html>

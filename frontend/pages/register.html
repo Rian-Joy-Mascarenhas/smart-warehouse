@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Smart Warehouse</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <nav>
+        <div class="nav-container">
+            <a href="../index.html" class="nav-logo">🏭 Smart Warehouse</a>
+            <ul class="nav-links">
+                <li><a href="login.html">Login</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="form-container">
+            <h1 style="text-align: center; margin-bottom: 2rem; color: #2c3e50;">Create Account</h1>
+
+            <form id="registerForm">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" placeholder="Enter username">
+                    <div class="form-error"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="fullName">Full Name</label>
+                    <input type="text" id="fullName" name="fullName" placeholder="Enter your full name">
+                    <div class="form-error"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" placeholder="Enter your email">
+                    <div class="form-error"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <div style="position: relative;">
+                        <input type="password" id="password" name="password" placeholder="Enter password">
+                        <button type="button" class="toggle-password" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 1.2rem;">👁️</button>
+                    </div>
+                    <div class="form-error"></div>
+                    <small style="color: #7f8c8d; margin-top: 0.5rem; display: block;">
+                        Password must contain: at least 8 characters, uppercase, lowercase, digit, and special character
+                    </small>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">Register</button>
+            </form>
+
+            <div class="form-link">
+                Already have an account? <a href="login.html">Login here</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/session.js"></script>
+    <script src="../js/auth.js"></script>
+</body>
+</html>
