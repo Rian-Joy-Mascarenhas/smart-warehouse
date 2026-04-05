@@ -475,8 +475,8 @@ class SalesManager {
         }
     }
 
-        /**
-     * Display orders in table - UPDATED WITH INVOICE STATUS
+    /**
+     * Display orders in table
      */
     displayOrders(orders) {
         const tbody = document.querySelector('#ordersTable tbody');
@@ -485,7 +485,7 @@ class SalesManager {
         tbody.innerHTML = '';
 
         if (orders.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 2rem;">No orders found</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 2rem;">No orders found</td></tr>';
             return;
         }
 
@@ -498,13 +498,8 @@ class SalesManager {
                 const product = this.products?.find(p => p._id === item.product_id);
                 return product ? product.name : item.product_id;
             }).join(', ');
-            
-            // Check if invoice exists (you would need to fetch this data)
-            const invoiceStatus = order.invoice_id ? '✅ Generated' : '⏳ Pending';
-            const invoiceStatusClass = order.invoice_id ? 'generated' : 'pending';
 
             row.innerHTML = `
-                <td><input type="checkbox" name="order-select" value="${order._id}"></td>
                 <td>${order.order_number}</td>
                 <td>${new Date(order.created_at).toLocaleDateString()}</td>
                 <td>${productNames}</td>
@@ -512,11 +507,9 @@ class SalesManager {
                 <td>${order.total_quantity}</td>
                 <td><span class="status-badge ${statusClass}">${order.status}</span></td>
                 <td><span class="payment-badge ${order.payment_status === 'PAID' ? 'paid' : 'unpaid'}">${order.payment_status}</span></td>
-                <td><span class="invoice-badge ${invoiceStatusClass}">${invoiceStatus}</span></td>
                 <td>
                     <button class="btn btn-sm btn-info" onclick="salesManager.viewOrder('${order._id}')">View</button>
                     <button class="btn btn-sm btn-edit" onclick="salesManager.editOrder('${order._id}')">Edit</button>
-                    <button class="btn btn-sm btn-secondary" onclick="salesManager.generateInvoiceForOrder('${order._id}')">📄 Invoice</button>
                     <button class="btn btn-sm btn-delete" onclick="salesManager.deleteOrder('${order._id}')">Delete</button>
                 </td>
             `;
@@ -675,22 +668,7 @@ class SalesManager {
             const data = await response.json();
 
             if (response.ok) {
-                const order = data.data.order;
-                const invoice = data.data.invoice;
-                
-                // Show success message with invoice info
-                let message = `Order ${order.order_number} created successfully`;
-                if (invoice) {
-                    message += ` and Invoice ${invoice.invoice_number} generated automatically`;
-                }
-                
-                this.showAlert('success', message);
-                
-                // Show invoice generation success
-                if (invoice) {
-                    this.showInvoiceGenerationNotice(invoice);
-                }
-                
+                this.showAlert('success', 'Order created successfully');
                 document.getElementById('orderForm').reset();
                 this.orderItems = [];
                 this.displayOrderItems();
@@ -867,11 +845,8 @@ class SalesManager {
     /**
      * Delete order - NEW METHOD
      */
-        /**
-     * Delete order - UPDATED
-     */
     async deleteOrder(orderId) {
-        if (!confirm('Are you sure you want to delete this order? This action cannot be undone. Customer stats will be recalculated.')) return;
+        if (!confirm('Are you sure you want to delete this order? This action cannot be undone.')) return;
 
         try {
             const response = await fetch(`${this.apiUrl}/sales/orders/${orderId}`, {
@@ -882,9 +857,9 @@ class SalesManager {
             const data = await response.json();
 
             if (response.ok) {
-                this.showAlert('success', 'Order deleted successfully and customer stats recalculated');
+                this.showAlert('success', 'Order deleted successfully');
                 this.loadOrders();
-                this.loadCustomersTable(); // Reload customers to show updated stats
+                this.loadCustomersTable();
             } else {
                 this.showAlert('error', data.message);
             }
@@ -895,7 +870,7 @@ class SalesManager {
     }
 
     /**
-     * Cancel order - UPDATED
+     * Cancel order
      */
     async cancelOrder(orderId) {
         const reason = prompt('Enter cancellation reason:');
@@ -911,9 +886,9 @@ class SalesManager {
             const data = await response.json();
 
             if (response.ok) {
-                this.showAlert('success', 'Order cancelled successfully and customer stats recalculated');
+                this.showAlert('success', 'Order cancelled successfully');
                 this.loadOrders();
-                this.loadCustomersTable(); // Reload customers to show updated stats
+                this.loadCustomersTable();
             } else {
                 this.showAlert('error', data.message);
             }
@@ -983,83 +958,6 @@ class SalesManager {
             }
         } catch (error) {
             console.error('Load stats error:', error);
-        }
-    }
-
-        /**
-     * Generate invoice for single order
-     */
-    async generateInvoiceForOrder(orderId) {
-        try {
-            const response = await fetch(`${this.apiUrl}/sales/orders/${orderId}/generate-invoice`, {
-                method: 'POST',
-                headers: sessionManager.getAuthHeaders(),
-                body: JSON.stringify({
-                    send_email: false
-                })
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                this.showAlert('success', data.message);
-                this.loadOrders();
-                
-                // Show invoice details
-                const invoice = data.data.invoice;
-                alert(`Invoice ${invoice.invoice_number} created!\n\nWould you like to:\n1. Download PDF\n2. Send via Email`);
-            } else {
-                this.showAlert('error', data.message);
-            }
-        } catch (error) {
-            console.error('Generate invoice error:', error);
-            this.showAlert('error', 'Failed to generate invoice');
-        }
-    }
-
-    /**
-     * Generate invoices for bulk orders
-     */
-    async generateBulkInvoices() {
-        const checkboxes = document.querySelectorAll('input[name="order-select"]:checked');
-        
-        if (checkboxes.length === 0) {
-            this.showAlert('error', 'Please select at least one order');
-            return;
-        }
-
-        const orderIds = Array.from(checkboxes).map(cb => cb.value);
-
-        if (!confirm(`Generate invoices for ${orderIds.length} orders?`)) {
-            return;
-        }
-
-        try {
-            this.showLoading('ordersTable');
-
-            const response = await fetch(`${this.apiUrl}/sales/orders/generate-invoices-batch`, {
-                method: 'POST',
-                headers: sessionManager.getAuthHeaders(),
-                body: JSON.stringify({
-                    order_ids: orderIds,
-                    send_emails: false
-                })
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                const results = data.data;
-                this.showAlert('success', `Generated ${results.generated} invoices successfully`);
-                this.loadOrders();
-            } else {
-                this.showAlert('error', data.message);
-            }
-        } catch (error) {
-            console.error('Bulk generate error:', error);
-            this.showAlert('error', 'Failed to generate invoices');
-        } finally {
-            this.hideLoading('ordersTable');
         }
     }
 
@@ -1141,100 +1039,6 @@ class SalesManager {
     closeModal(modalId) {
         const modal = document.getElementById(modalId);
         if (modal) modal.classList.remove('show');
-    }
-
-    showInvoiceGenerationNotice(invoice) {
-        const modal = document.getElementById('invoiceGenerationModal');
-        if (!modal) {
-            // Create modal if it doesn't exist
-            const newModal = document.createElement('div');
-            newModal.id = 'invoiceGenerationModal';
-            newModal.className = 'modal show';
-            newModal.innerHTML = `
-                <div class="modal-content" style="max-width: 500px;">
-                    <div class="modal-header">
-                        <h2>✅ Invoice Generated</h2>
-                        <button type="button" class="modal-close" onclick="document.getElementById('invoiceGenerationModal').classList.remove('show')">&times;</button>
-                    </div>
-                    <div style="padding: 1.5rem;">
-                        <p style="font-size: 1.1rem; margin-bottom: 1rem;">Invoice has been automatically generated!</p>
-                        <div style="background-color: #d4edda; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
-                            <p style="margin: 0.5rem 0;"><strong>Invoice Number:</strong> ${invoice.invoice_number}</p>
-                            <p style="margin: 0.5rem 0;"><strong>Amount:</strong> $${invoice.total_amount.toFixed(2)}</p>
-                            <p style="margin: 0.5rem 0;"><strong>Status:</strong> ${invoice.status}</p>
-                        </div>
-                        <p style="color: #666; margin-bottom: 1rem;">What would you like to do?</p>
-                        <div style="display: grid; gap: 0.75rem;">
-                            <button class="btn btn-primary" onclick="salesManager.downloadInvoicePDF('${invoice._id}'); document.getElementById('invoiceGenerationModal').classList.remove('show')">📥 Download PDF</button>
-                            <button class="btn btn-secondary" onclick="salesManager.sendInvoiceEmail('${invoice._id}'); document.getElementById('invoiceGenerationModal').classList.remove('show')">📧 Send Email</button>
-                            <button class="btn btn-info" onclick="document.getElementById('invoiceGenerationModal').classList.remove('show')">Close</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(newModal);
-        } else {
-            modal.classList.add('show');
-        }
-    }
-
-    /**
-     * Download invoice PDF - NEW METHOD FOR SALES MODULE
-     */
-    async downloadInvoicePDF(invoiceId) {
-        try {
-            const response = await fetch(`${this.apiUrl}/invoice/${invoiceId}/pdf`, {
-                method: 'GET',
-                headers: sessionManager.getAuthHeaders()
-            });
-
-            if (response.ok) {
-                const filename = `invoice_${invoiceId}.pdf`;
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = filename;
-                document.body.appendChild(link);
-                link.click();
-                window.URL.revokeObjectURL(url);
-                document.body.removeChild(link);
-                
-                this.showAlert('success', 'Invoice downloaded successfully');
-            } else {
-                this.showAlert('error', 'Failed to download invoice');
-            }
-        } catch (error) {
-            console.error('Download invoice error:', error);
-            this.showAlert('error', 'Failed to download invoice');
-        }
-    }
-
-    /**
-     * Send invoice email - NEW METHOD FOR SALES MODULE
-     */
-    async sendInvoiceEmail(invoiceId) {
-        const email = prompt('Enter email address to send invoice:');
-        if (!email) return;
-
-        try {
-            const response = await fetch(`${this.apiUrl}/invoice/${invoiceId}/send-email`, {
-                method: 'POST',
-                headers: sessionManager.getAuthHeaders(),
-                body: JSON.stringify({ email })
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                this.showAlert('success', data.message);
-            } else {
-                this.showAlert('error', data.message);
-            }
-        } catch (error) {
-            console.error('Send invoice error:', error);
-            this.showAlert('error', 'Failed to send invoice');
-        }
     }
 }
 

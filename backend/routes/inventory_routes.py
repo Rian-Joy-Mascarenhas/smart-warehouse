@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from models.inventory import Inventory
 from models.user import User
 from utils.helpers import create_response
-from utils.validators import validate_product_data, validate_category_data, validate_inventory_adjustment
+from utils.validators import validate_product_data, validate_category_data, validate_stock_adjustment
 from middleware.auth_middleware import token_required
 
 inventory_bp = Blueprint('inventory', __name__, url_prefix='/api/inventory')
@@ -384,7 +384,7 @@ def adjust_stock(user_id, product_id):
         reason = data.get('reason', '').strip()
         
         # Validate stock adjustment
-        is_valid, message = validate_inventory_adjustment({'quantity_change': quantity_change, 'reason': reason})
+        is_valid, message = validate_stock_adjustment(quantity_change, reason)
         if not is_valid:
             return create_response('error', message, status_code=400)
         

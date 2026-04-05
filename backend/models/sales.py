@@ -2,7 +2,6 @@ from datetime import datetime
 from bson.objectid import ObjectId
 from utils.db_manager import DatabaseManager
 import uuid
-from models.invoice import Invoice
 
 class Sales:
     """Sales model for database operations"""
@@ -126,45 +125,82 @@ class Sales:
             print(f"Error deleting customer: {str(e)}")
             return False
 
-    def recalculate_customer_stats(self, customer_id):
+    # ===================== CUSTOMER STATS UPDATE METHODS =====================
+
+    def update_customer_stats_on_order_creation(self, customer_id, order_total):
         """
-        Recalculate customer stats (total_orders and total_spent) from active orders
+        Update customer stats when order is created
         
         Args:
             customer_id (str): Customer ObjectId
-        
-        Returns:
-            dict: Updated customer data
+            order_total (float): Total amount of the order
         """
         try:
-            # Get all active orders for this customer
-            active_orders = list(self.sales_orders_collection.find({
-                'customer_id': ObjectId(customer_id),
-                'status': {'$ne': 'CANCELLED'}
-            }))
-            
-            total_orders = len(active_orders)
-            total_spent = sum(order.get('total_amount', 0) for order in active_orders)
-            
-            # Update customer
             self.customers_collection.update_one(
                 {'_id': ObjectId(customer_id)},
-                {'$set': {
-                    'total_orders': total_orders,
-                    'total_spent': total_spent,
-                    'updated_at': datetime.utcnow()
+                {'$inc': {
+                    'total_orders': 1,
+                    'total_spent': order_total
                 }}
             )
-            
-            return self.find_customer_by_id(customer_id)
         except Exception as e:
-            print(f"Error recalculating customer stats: {str(e)}")
-            return None
+            print(f"Error updating customer stats on creation: {str(e)}")
+
+    def update_customer_stats_on_order_cancellation(self, customer_id, order_total):
+        """
+        Update customer stats when order is cancelled
+        Decreases total_orders and total_spent
+        
+        Args:
+            customer_id (str): Customer ObjectId
+            order_total (float): Total amount of the order
+        """
+        try:
+            self.customers_collection.update_one(
+                {'_id': ObjectId(customer_id)},
+                {'$inc': {
+                    'total_orders': -1,
+                    'total_spent': -order_total
+                }}
+            )
+        except Exception as e:
+            print(f"Error updating customer stats on cancellation: {str(e)}")
+
+    def update_customer_stats_on_order_deletion(self, customer_id, order_total):
+        """
+        Update customer stats when order is deleted
+        Decreases total_orders and total_spent
+        
+        Args:
+            customer_id (str): Customer ObjectId
+            order_total (float): Total amount of the order
+        """
+        try:
+            self.customers_collection.update_one(
+                {'_id': ObjectId(customer_id)},
+                {'$inc': {
+                    'total_orders': -1,
+                    'total_spent': -order_total
+                }}
+            )
+        except Exception as e:
+            print(f"Error updating customer stats on deletion: {str(e)}")
 
     # ===================== SALES ORDER OPERATIONS =====================
 
     def create_sales_order(self, customer_id, items, notes, created_by):
-        """Create a new sales order"""
+        """
+        Create a new sales order
+        
+        Args:
+            customer_id (str): Customer ObjectId
+            items (list): List of items [{'product_id': str, 'quantity': int, 'price': float}, ...]
+            notes (str): Order notes
+            created_by (str): User ID creating order
+        
+        Returns:
+            dict: Created order or None
+        """
         try:
             # Generate order number
             order_number = f"ORD-{uuid.uuid4().hex[:8].upper()}"
@@ -201,12 +237,9 @@ class Sales:
                 order_data['created_by'] = str(order_data['created_by'])
                 
                 # Update customer stats
-                self.customers_collection.update_one(
-                    {'_id': ObjectId(customer_id)},
-                    {'$inc': {
-                        'total_orders': 1,
-                        'total_spent': order_data['total_amount']
-                    }}
+                self.update_customer_stats_on_order_creation(
+                    customer_id,
+                    order_data['total_amount']
                 )
                 
                 return order_data
@@ -317,22 +350,14 @@ class Sales:
 
     def cancel_order(self, order_id, reason):
         """
-        Cancel a sales order and recalculate customer stats
-        
-        Args:
-            order_id (str): Order ObjectId
-            reason (str): Cancellation reason
-        
-        Returns:
-            bool: True if successful
+        Cancel a sales order
+        Updates customer stats
         """
         try:
             order = self.find_order_by_id(order_id)
             
             if not order:
                 return False
-            
-            customer_id = order['customer_id']
             
             # Update order status
             result = self.sales_orders_collection.update_one(
@@ -346,8 +371,11 @@ class Sales:
             )
             
             if result.modified_count > 0:
-                # Recalculate customer stats
-                self.recalculate_customer_stats(customer_id)
+                # Update customer stats - reduce counts
+                self.update_customer_stats_on_order_cancellation(
+                    order['customer_id'],
+                    order['total_amount']
+                )
                 return True
             
             return False
@@ -357,34 +385,36 @@ class Sales:
 
     def delete_order(self, order_id):
         """
-        Delete an order and recalculate customer stats
+        Delete an order from database
+        Updates customer stats
         
         Args:
             order_id (str): Order ObjectId
         
         Returns:
-            bool: True if successful
+            tuple: (success: bool, order: dict or None)
         """
         try:
             order = self.find_order_by_id(order_id)
             
             if not order:
-                return False
-            
-            customer_id = order['customer_id']
+                return False, None
             
             # Delete order
             result = self.sales_orders_collection.delete_one({'_id': ObjectId(order_id)})
             
             if result.deleted_count > 0:
-                # Recalculate customer stats
-                self.recalculate_customer_stats(customer_id)
-                return True
+                # Update customer stats - reduce counts
+                self.update_customer_stats_on_order_deletion(
+                    order['customer_id'],
+                    order['total_amount']
+                )
+                return True, order
             
-            return False
+            return False, None
         except Exception as e:
             print(f"Error deleting order: {str(e)}")
-            return False
+            return False, None
 
     def get_order_statistics(self):
         """Get sales statistics"""
@@ -443,74 +473,3 @@ class Sales:
         except Exception as e:
             print(f"Error getting customer orders: {str(e)}")
             return []
-        
-    def create_sales_order_with_invoice(self, customer_id, items, notes, created_by):
-        """
-        Create a sales order and automatically generate invoice
-        
-        Args:
-            customer_id (str): Customer ObjectId
-            items (list): List of items
-            notes (str): Order notes
-            created_by (str): User ID creating order
-        
-        Returns:
-            dict: Created order and invoice
-        """
-        try:
-            # Create sales order first
-            order = self.create_sales_order(customer_id, items, notes, created_by)
-            
-            if not order:
-                return None
-            
-            # Automatically create invoice from order
-            invoice_manager = Invoice(self.user_id)
-            invoice = invoice_manager.create_invoice_from_order(order['_id'], created_by)
-            
-            if invoice:
-                print(f"✓ Invoice {invoice['invoice_number']} created for Order {order['order_number']}")
-                
-                return {
-                    'order': order,
-                    'invoice': invoice,
-                    'message': f'Order created and Invoice {invoice["invoice_number"]} generated automatically'
-                }
-            else:
-                print(f"⚠ Order created but failed to generate invoice")
-                return {
-                    'order': order,
-                    'invoice': None,
-                    'message': 'Order created but invoice generation failed'
-                }
-        except Exception as e:
-            print(f"Error creating order with invoice: {str(e)}")
-            return None
-
-    def get_order_with_invoice(self, order_id):
-        """
-        Get order and its associated invoice
-        
-        Args:
-            order_id (str): Order ObjectId
-        
-        Returns:
-            dict: Order and invoice data
-        """
-        try:
-            order = self.find_order_by_id(order_id)
-            
-            if not order:
-                return None
-            
-            # Get invoice for this order
-            invoice_manager = Invoice(self.user_id)
-            invoice = invoice_manager.find_invoice_by_order_id(order_id)
-            
-            return {
-                'order': order,
-                'invoice': invoice
-            }
-        except Exception as e:
-            print(f"Error getting order with invoice: {str(e)}")
-            return None

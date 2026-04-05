@@ -1,251 +1,146 @@
-from email_validator import validate_email, EmailNotValidError
-from datetime import datetime
-
-def validate_email_format(email):
-    """Validate email format"""
-    try:
-        valid = validate_email(email)
-        return True, valid.email
-    except EmailNotValidError as e:
-        return False, str(e)
-
-def validate_password(password):
-    """Validate password strength"""
-    if len(password) < 6:
-        return False, 'Password must be at least 6 characters'
-    
-    has_upper = any(c.isupper() for c in password)
-    has_lower = any(c.islower() for c in password)
-    has_digit = any(c.isdigit() for c in password)
-    
-    if not (has_upper and has_lower and has_digit):
-        return False, 'Password must contain uppercase, lowercase, and numbers'
-    
-    return True, 'Password is valid'
+import re
 
 def validate_product_data(data):
-    """Validate product data"""
-    errors = []
-    
-    if not data.get('name'):
-        errors.append('Product name is required')
-    
-    if not data.get('sku'):
-        errors.append('SKU is required')
-    
-    if 'price' not in data or data.get('price') is None:
-        errors.append('Price is required')
-    elif data.get('price') < 0:
-        errors.append('Price cannot be negative')
-    
-    if 'quantity' not in data or data.get('quantity') is None:
-        errors.append('Quantity is required')
-    elif data.get('quantity') < 0:
-        errors.append('Quantity cannot be negative')
-    
-    if 'min_stock' in data and data.get('min_stock') < 0:
-        errors.append('Min stock cannot be negative')
-    
-    if 'max_stock' in data and data.get('max_stock') < 0:
-        errors.append('Max stock cannot be negative')
-    
-    return len(errors) == 0, errors
-
-def validate_sales_order_data(data, inventory):
     """
-    Validate sales order data
+    Validate product creation/update data
     
     Args:
-        data (dict): Order data
-        inventory (Inventory): Inventory manager instance
+        data (dict): Product data to validate
     
     Returns:
-        tuple: (is_valid, errors_list)
+        tuple: (is_valid, error_messages)
     """
     errors = []
     
-    # Validate customer ID
-    if not data.get('customer_id'):
-        errors.append('Customer ID is required')
+    # Validate name
+    if 'name' in data:
+        name = data['name']
+        if not name or not isinstance(name, str):
+            errors.append('Product name is required and must be a string')
+        elif len(name.strip()) < 2:
+            errors.append('Product name must be at least 2 characters')
+        elif len(name.strip()) > 100:
+            errors.append('Product name cannot exceed 100 characters')
     
-    # Validate items
-    if not data.get('items') or len(data.get('items', [])) == 0:
-        errors.append('At least one item is required')
-    else:
-        items = data.get('items', [])
-        
-        for idx, item in enumerate(items):
-            # Check product ID
-            if not item.get('product_id'):
-                errors.append(f'Item {idx + 1}: Product ID is required')
-                continue
-            
-            # Check quantity
-            if 'quantity' not in item or item.get('quantity') is None:
-                errors.append(f'Item {idx + 1}: Quantity is required')
-                continue
-            
-            quantity = item.get('quantity')
-            if not isinstance(quantity, (int, float)) or quantity <= 0:
-                errors.append(f'Item {idx + 1}: Quantity must be greater than 0')
-                continue
-            
-            # Check price
-            if 'price' not in item or item.get('price') is None:
-                errors.append(f'Item {idx + 1}: Price is required')
-                continue
-            
-            price = item.get('price')
-            if not isinstance(price, (int, float)) or price < 0:
-                errors.append(f'Item {idx + 1}: Price cannot be negative')
-                continue
-            
-            # Check inventory availability
-            product = inventory.find_product_by_id(item.get('product_id'))
-            if not product:
-                errors.append(f'Item {idx + 1}: Product not found')
-                continue
-            
-            if product.get('quantity', 0) < quantity:
-                errors.append(f'Item {idx + 1}: Insufficient stock. Available: {product.get("quantity", 0)}, Requested: {quantity}')
+    # Validate SKU
+    if 'sku' in data:
+        sku = data['sku']
+        if not sku or not isinstance(sku, str):
+            errors.append('SKU is required and must be a string')
+        elif len(sku.strip()) < 2:
+            errors.append('SKU must be at least 2 characters')
+        elif len(sku.strip()) > 50:
+            errors.append('SKU cannot exceed 50 characters')
+        elif not re.match(r'^[A-Z0-9\-]+$', sku.strip()):
+            errors.append('SKU must contain only uppercase letters, numbers, and hyphens')
     
-    return len(errors) == 0, errors
-
-def validate_customer_data(data):
-    """Validate customer data"""
-    errors = []
+    # Validate price
+    if 'price' in data:
+        try:
+            price = float(data['price'])
+            if price < 0:
+                errors.append('Price cannot be negative')
+            elif price > 999999.99:
+                errors.append('Price cannot exceed 999999.99')
+        except (ValueError, TypeError):
+            errors.append('Price must be a valid number')
     
-    if not data.get('name'):
-        errors.append('Customer name is required')
+    # Validate quantity
+    if 'quantity' in data:
+        try:
+            quantity = int(data['quantity'])
+            if quantity < 0:
+                errors.append('Quantity cannot be negative')
+        except (ValueError, TypeError):
+            errors.append('Quantity must be a valid integer')
     
-    if not data.get('email'):
-        errors.append('Email is required')
-    else:
-        is_valid, message = validate_email_format(data.get('email'))
-        if not is_valid:
-            errors.append(f'Invalid email: {message}')
+    # Validate min_stock
+    if 'min_stock' in data:
+        try:
+            min_stock = int(data['min_stock'])
+            if min_stock < 0:
+                errors.append('Minimum stock cannot be negative')
+        except (ValueError, TypeError):
+            errors.append('Minimum stock must be a valid integer')
     
-    if not data.get('phone'):
-        errors.append('Phone is required')
+    # Validate max_stock
+    if 'max_stock' in data:
+        try:
+            max_stock = int(data['max_stock'])
+            if max_stock < 0:
+                errors.append('Maximum stock cannot be negative')
+        except (ValueError, TypeError):
+            errors.append('Maximum stock must be a valid integer')
     
-    if not data.get('address'):
-        errors.append('Address is required')
+    # Check if min_stock < max_stock
+    if 'min_stock' in data and 'max_stock' in data:
+        try:
+            if int(data['min_stock']) > int(data['max_stock']):
+                errors.append('Minimum stock cannot be greater than maximum stock')
+        except:
+            pass
     
-    if not data.get('city'):
-        errors.append('City is required')
+    # Validate description
+    if 'description' in data and data['description']:
+        description = data['description']
+        if not isinstance(description, str):
+            errors.append('Description must be a string')
+        elif len(description) > 500:
+            errors.append('Description cannot exceed 500 characters')
     
-    if not data.get('state'):
-        errors.append('State is required')
-    
-    if not data.get('zip_code'):
-        errors.append('Zip code is required')
-    
-    if not data.get('country'):
-        errors.append('Country is required')
-    
-    return len(errors) == 0, errors
-
-def validate_category_data(data):
-    """Validate category data"""
-    errors = []
-    
-    if not data.get('name'):
-        errors.append('Category name is required')
-    
-    if data.get('name') and len(data.get('name')) < 2:
-        errors.append('Category name must be at least 2 characters')
+    # Validate category_id
+    if 'category_id' in data and data['category_id']:
+        if not isinstance(data['category_id'], str):
+            errors.append('Category ID must be a string')
     
     return len(errors) == 0, errors
 
-def validate_inventory_adjustment(data):
-    """Validate inventory adjustment data"""
-    errors = []
+def validate_category_data(name):
+    """
+    Validate category creation data
     
-    if not data.get('product_id'):
-        errors.append('Product ID is required')
+    Args:
+        name (str): Category name
     
-    if 'quantity_change' not in data or data.get('quantity_change') is None:
-        errors.append('Quantity change is required')
+    Returns:
+        tuple: (is_valid, error_message)
+    """
+    if not name or not isinstance(name, str):
+        return False, 'Category name is required and must be a string'
     
-    if not data.get('reason'):
-        errors.append('Reason for adjustment is required')
+    if len(name.strip()) < 2:
+        return False, 'Category name must be at least 2 characters'
     
-    return len(errors) == 0, errors
+    if len(name.strip()) > 50:
+        return False, 'Category name cannot exceed 50 characters'
+    
+    return True, 'Valid'
 
-def validate_user_registration(data):
-    """Validate user registration data"""
+def validate_stock_adjustment(quantity_change, reason):
+    """
+    Validate stock adjustment data
+    
+    Args:
+        quantity_change (int): Change in quantity
+        reason (str): Reason for change
+    
+    Returns:
+        tuple: (is_valid, error_message)
+    """
     errors = []
     
-    if not data.get('username'):
-        errors.append('Username is required')
+    try:
+        qty = int(quantity_change)
+        if qty == 0:
+            errors.append('Quantity change cannot be zero')
+    except (ValueError, TypeError):
+        errors.append('Quantity change must be a valid integer')
     
-    if len(data.get('username', '')) < 3:
-        errors.append('Username must be at least 3 characters')
+    if not reason or not isinstance(reason, str):
+        errors.append('Reason is required and must be a string')
+    elif len(reason.strip()) < 3:
+        errors.append('Reason must be at least 3 characters')
+    elif len(reason.strip()) > 200:
+        errors.append('Reason cannot exceed 200 characters')
     
-    if not data.get('email'):
-        errors.append('Email is required')
-    else:
-        is_valid, message = validate_email_format(data.get('email'))
-        if not is_valid:
-            errors.append(f'Invalid email: {message}')
-    
-    if not data.get('password'):
-        errors.append('Password is required')
-    else:
-        is_valid, message = validate_password(data.get('password'))
-        if not is_valid:
-            errors.append(message)
-    
-    return len(errors) == 0, errors
-
-def validate_user_login(data):
-    """Validate user login data"""
-    errors = []
-    
-    if not data.get('username'):
-        errors.append('Username is required')
-    
-    if not data.get('password'):
-        errors.append('Password is required')
-    
-    return len(errors) == 0, errors
-
-def validate_profile_update(data):
-    """Validate profile update data"""
-    errors = []
-    
-    if 'email' in data and data.get('email'):
-        is_valid, message = validate_email_format(data.get('email'))
-        if not is_valid:
-            errors.append(f'Invalid email: {message}')
-    
-    if 'first_name' in data and data.get('first_name'):
-        if len(data.get('first_name')) < 2:
-            errors.append('First name must be at least 2 characters')
-    
-    if 'last_name' in data and data.get('last_name'):
-        if len(data.get('last_name')) < 2:
-            errors.append('Last name must be at least 2 characters')
-    
-    return len(errors) == 0, errors
-
-def validate_password_change(data):
-    """Validate password change data"""
-    errors = []
-    
-    if not data.get('old_password'):
-        errors.append('Old password is required')
-    
-    if not data.get('new_password'):
-        errors.append('New password is required')
-    else:
-        is_valid, message = validate_password(data.get('new_password'))
-        if not is_valid:
-            errors.append(f'New password: {message}')
-    
-    if not data.get('confirm_password'):
-        errors.append('Password confirmation is required')
-    elif data.get('new_password') != data.get('confirm_password'):
-        errors.append('New password and confirmation do not match')
-    
-    return len(errors) == 0, errors
+    return len(errors) == 0, errors[0] if errors else 'Valid'

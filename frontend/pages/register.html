@@ -18,44 +18,48 @@
 
     <div class="container">
         <div class="form-container">
-            <h1 style="text-align: center; margin-bottom: 2rem; color: #2c3e50;">Create Account</h1>
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">✨</div>
+                <h1 style="font-size: 1.8rem; margin-bottom: 0.5rem;">Create Account</h1>
+                <p style="color: var(--text-muted);">Join Smart Warehouse today</p>
+            </div>
 
             <form id="registerForm">
                 <div class="form-group">
                     <label for="username">Username</label>
-                    <input type="text" id="username" name="username" placeholder="Enter username">
+                    <input type="text" id="username" required placeholder="Choose a username">
                     <div class="form-error"></div>
                 </div>
 
                 <div class="form-group">
                     <label for="fullName">Full Name</label>
-                    <input type="text" id="fullName" name="fullName" placeholder="Enter your full name">
+                    <input type="text" id="fullName" required placeholder="Enter your full name">
                     <div class="form-error"></div>
                 </div>
 
                 <div class="form-group">
                     <label for="email">Email</label>
-                    <input type="email" id="email" name="email" placeholder="Enter your email">
+                    <input type="email" id="email" required placeholder="Enter your email">
                     <div class="form-error"></div>
                 </div>
 
                 <div class="form-group">
                     <label for="password">Password</label>
                     <div style="position: relative;">
-                        <input type="password" id="password" name="password" placeholder="Enter password">
-                        <button type="button" class="toggle-password" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 1.2rem;">👁️</button>
+                        <input type="password" id="password" required placeholder="Create a strong password">
+                        <button type="button" class="toggle-password" style="position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 1.2rem; transition: color 0.3s;">👁️</button>
                     </div>
-                    <div class="form-error"></div>
-                    <small style="color: #7f8c8d; margin-top: 0.5rem; display: block;">
-                        Password must contain: at least 8 characters, uppercase, lowercase, digit, and special character
+                    <small style="color: var(--text-muted); margin-top: 0.5rem; display: block;">
+                        Password must contain: 8+ chars, uppercase, lowercase, digit, special char
                     </small>
+                    <div class="form-error"></div>
                 </div>
 
-                <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">Register</button>
+                <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">Create Account</button>
             </form>
 
             <div class="form-link">
-                Already have an account? <a href="login.html">Login here</a>
+                Already have an account? <a href="login.html">Sign in</a>
             </div>
         </div>
     </div>

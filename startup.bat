@@ -1,23 +1,43 @@
 @echo off
-echo Starting Smart Warehouse System...
-echo.
-echo Opening 2 terminals for:
-echo 1. Backend (Flask)
-echo 2. Frontend (HTTP Server)
-echo.
-echo Note: MongoDB is running in the cloud (Atlas)
-echo.
-
-REM Terminal 1 - Backend
-start cmd /k "cd backend && venv\Scripts\activate && python app.py"
-
-REM Terminal 2 - Frontend
-start cmd /k "cd frontend && python -m http.server 8000"
+color 0A
+cls
 
 echo.
-echo Services started!
+echo ============================================
+echo   SMART WAREHOUSE STARTUP
+echo ============================================
 echo.
-echo Access the website at: http://localhost:8000/index.html
-echo API Documentation: http://localhost:5000/api/docs
+
+REM Navigate to project root
+cd /d "%~dp0"
+
+REM Start Backend
+echo Starting Backend Server on port 5000...
+start "Smart Warehouse Backend" cmd /k "cd backend && python app.py"
+
+REM Wait for backend to start
+timeout /t 3 /nobreak
+
+REM Start Frontend FROM PROJECT ROOT (this is the key!)
+echo Starting Frontend Server on port 8000...
+start "Smart Warehouse Frontend" cmd /k "python -m http.server 8000"
+
+REM Wait for servers to start
+timeout /t 2 /nobreak
+
+REM Open browser
+echo Opening browser...
+start http://localhost:8000/frontend/index.html
+
+echo.
+echo ============================================
+echo   SERVERS RUNNING SUCCESSFULLY!
+echo ============================================
+echo.
+echo Backend:  http://localhost:5000
+echo Frontend: http://localhost:8000/frontend/
+echo Login:    http://localhost:8000/frontend/pages/login.html
+echo.
+echo To stop: Close the command windows that opened
 echo.
 pause

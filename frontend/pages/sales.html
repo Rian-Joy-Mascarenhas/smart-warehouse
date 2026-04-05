@@ -6,12 +6,11 @@
     <title>Sales Management - Smart Warehouse</title>
     <link rel="stylesheet" href="../css/styles.css">
     <style>
-        .sales-tabs {
+        .tabs {
             display: flex;
             border-bottom: 2px solid #bdc3c7;
             margin-bottom: 2rem;
             gap: 1rem;
-            flex-wrap: wrap;
         }
 
         .tab-button {
@@ -31,11 +30,11 @@
             font-weight: bold;
         }
 
-        .report-content {
+        .tab-content {
             display: none;
         }
 
-        .report-content.active {
+        .tab-content.active {
             display: block;
         }
 
@@ -61,6 +60,47 @@
             margin: 1rem 0;
         }
 
+        .status-badge, .payment-badge {
+            padding: 0.4rem 0.8rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .status-badge.pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .status-badge.active {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status-badge.cancelled {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .payment-badge.paid {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .payment-badge.unpaid {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .btn-info {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .btn-info:hover {
+            background-color: #2980b9;
+        }
+
         .filters {
             display: flex;
             gap: 1rem;
@@ -77,25 +117,100 @@
             border-radius: 4px;
         }
 
-        .invoice-badge {
-            padding: 0.4rem 0.8rem;
+        #orderItemsTable {
+            margin: 1.5rem 0;
+        }
+
+        #orderItemsTable th {
+            background-color: #ecf0f1;
+        }
+
+        .order-totals {
+            background-color: #f8f9fa;
+            padding: 1rem;
             border-radius: 4px;
-            font-size: 0.85rem;
+            display: grid;
+            gap: 0.5rem;
+            max-width: 300px;
+            margin-left: auto;
+        }
+
+        .order-totals-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .order-totals-row.total {
+            font-weight: bold;
+            font-size: 1.1rem;
+            border-bottom: 2px solid #3498db;
+        }
+
+        #orderItemsTable {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        #orderItemsTable thead {
+            position: sticky;
+            top: 0;
+            background-color: #ecf0f1;
+            z-index: 5;
+        }
+
+        #orderItemsTable th {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #bdc3c7;
             font-weight: 600;
-            display: inline-block;
         }
 
-        .generated {
-            background-color: #d4edda;
-            color: #155724;
+        #orderItemsTable td {
+            padding: 0.75rem;
+            border-bottom: 1px solid #ecf0f1;
         }
 
-        .pending {
-            background-color: #fff3cd;
-            color: #856404;
+        #orderItemsTable tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        #orderItemsTable .btn-sm {
+            padding: 0.3rem 0.6rem;
+            font-size: 0.75rem;
+        }
+
+        /* Prevent double scrollbars */
+        #orderForm {
+            display: flex;
+            flex-direction: column;
+        }
+
+        #orderForm > div {
+            flex-shrink: 0;
+        }
+
+        /* Allow only items table to scroll */
+        .items-table-container {
+            flex: 1;
+            overflow-y: auto;
+            min-height: 200px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
         }
 
         @media (max-width: 768px) {
+            .tabs {
+                flex-wrap: wrap;
+            }
+
+            .tab-button {
+                padding: 0.75rem 1rem;
+                font-size: 0.9rem;
+            }
+
             .filters {
                 flex-direction: column;
             }
@@ -104,10 +219,6 @@
             .filters select {
                 min-width: 100%;
                 flex: 1 100%;
-            }
-
-            .stats-container {
-                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -120,8 +231,6 @@
                 <li><a href="../pages/dashboard.html">Dashboard</a></li>
                 <li><a href="../pages/inventory.html">Inventory</a></li>
                 <li><a href="../pages/sales.html">Sales</a></li>
-                <li><a href="../pages/invoices.html">Invoices</a></li>
-                <li><a href="../pages/analytics.html">Analytics</a></li>
                 <li><a href="#profile" onclick="showProfileModal()">Profile</a></li>
             </ul>
             <div class="nav-user">
@@ -134,39 +243,42 @@
     <div class="container">
         <div class="actions-header">
             <h1>💼 Sales Management</h1>
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="salesManager.openModal('addCustomerModal')">+ Add Customer</button>
+                <button class="btn btn-secondary" onclick="salesManager.openModal('createOrderModal')">+ Create Order</button>
+            </div>
         </div>
 
-        <!-- Sales Tabs -->
-        <div class="sales-tabs">
+        <!-- Tabs -->
+        <div class="tabs">
             <button class="tab-button active" onclick="switchTab('customers-tab')">👥 Customers</button>
-            <button class="tab-button" onclick="switchTab('orders-tab')">📦 Orders</button>
+            <button class="tab-button" onclick="switchTab('orders-tab')">📋 Orders</button>
         </div>
 
         <!-- Customers Tab -->
-        <div id="customers-tab" class="report-content active">
+        <div id="customers-tab" class="tab-content active">
             <!-- Stats -->
             <div class="stats-container">
                 <div class="stat-card">
                     <h3>Total Customers</h3>
-                    <div class="stat-value" id="totalCustomersCount">0</div>
+                    <div class="stat-value" id="totalCustomers">0</div>
                 </div>
                 <div class="stat-card">
-                    <h3>Active Customers</h3>
-                    <div class="stat-value" id="activeCustomersCount">0</div>
+                    <h3>Active Orders</h3>
+                    <div class="stat-value" id="totalOrders">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Total Revenue</h3>
+                    <div class="stat-value" id="totalRevenue">$0.00</div>
                 </div>
             </div>
 
-            <!-- Add Customer Button -->
-            <div style="margin-bottom: 1.5rem;">
-                <button class="btn btn-primary" onclick="salesManager.openModal('addCustomerModal')">➕ Add New Customer</button>
-            </div>
-
-            <!-- Filters -->
+            <!-- Search -->
             <div class="filters">
                 <input 
                     type="text" 
                     id="searchCustomers" 
-                    placeholder="Search customers..."
+                    placeholder="Search customers by name, email, or phone..."
                     style="flex: 2;"
                 >
             </div>
@@ -198,7 +310,7 @@
         </div>
 
         <!-- Orders Tab -->
-        <div id="orders-tab" class="report-content">
+        <div id="orders-tab" class="tab-content">
             <!-- Stats -->
             <div class="stats-container">
                 <div class="stat-card">
@@ -213,11 +325,6 @@
                     <h3>Pending Orders</h3>
                     <div class="stat-value" id="pendingOrders">0</div>
                 </div>
-            </div>
-
-            <!-- Create Order Button -->
-            <div style="margin-bottom: 1.5rem;">
-                <button class="btn btn-primary" onclick="salesManager.openModal('createOrderModal')">➕ Create Order</button>
             </div>
 
             <!-- Filters -->
@@ -236,15 +343,13 @@
                     <option value="DELIVERED">Delivered</option>
                     <option value="CANCELLED">Cancelled</option>
                 </select>
-                <button class="btn btn-secondary" onclick="salesManager.generateBulkInvoices()">📄 Generate Invoices</button>
             </div>
 
-            <!-- Orders Table -->
+                        <!-- Orders Table -->
             <div class="table-container">
                 <table id="ordersTable">
                     <thead>
                         <tr>
-                            <th style="width: 40px;"><input type="checkbox" id="selectAllOrders" onchange="selectAllOrders(this)"></th>
                             <th>Order Number</th>
                             <th>Date</th>
                             <th>Products</th>
@@ -252,13 +357,12 @@
                             <th>Qty</th>
                             <th>Status</th>
                             <th>Payment</th>
-                            <th>Invoice</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td colspan="10" style="text-align: center; padding: 2rem;">Loading orders...</td>
+                            <td colspan="8" style="text-align: center; padding: 2rem;">Loading orders...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -269,7 +373,7 @@
         </div>
     </div>
 
-    <!-- Add Customer Modal -->
+        <!-- Add Customer Modal -->
     <div id="addCustomerModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -313,7 +417,7 @@
                         <input type="text" id="customerCountry" required placeholder="Enter country">
                     </div>
                 </div>
-                <button type="submit" class="btn btn-primary" style="margin-top: 1.5rem; margin-bottom: 0;">Create Customer</button>
+                <button type="submit" class="btn btn-primary">Create Customer</button>
             </form>
         </div>
     </div>
@@ -363,7 +467,7 @@
                         <input type="text" id="editCustomerCountry" required>
                     </div>
                 </div>
-                <button type="submit" class="btn btn-primary" style="margin-top: 1.5rem; margin-bottom: 0;">Update Customer</button>
+                <button type="submit" class="btn btn-primary">Update Customer</button>
             </form>
         </div>
     </div>
@@ -450,7 +554,7 @@
 
     <!-- Edit Order Modal -->
     <div id="editOrderModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width: 600px;">
             <div class="modal-header">
                 <h2>Edit Order</h2>
                 <button type="button" class="modal-close" onclick="salesManager.closeModal('editOrderModal')">&times;</button>
@@ -517,7 +621,7 @@
 
     <!-- View Order Modal -->
     <div id="viewOrderModal" class="modal">
-        <div class="modal-content" style="max-width: 700px;">
+        <div class="modal-content" style="max-width: 600px;">
             <!-- Content loaded dynamically -->
         </div>
     </div>
@@ -529,15 +633,10 @@
         </div>
     </div>
 
-    <!-- Invoice Generation Modal -->
-    <div id="invoiceGenerationModal" class="modal">
-        <!-- Content loaded dynamically -->
-    </div>
-
     <script>
         function switchTab(tabName) {
             // Hide all tabs
-            document.querySelectorAll('.report-content').forEach(tab => {
+            document.querySelectorAll('.tab-content').forEach(tab => {
                 tab.classList.remove('active');
             });
 
@@ -551,11 +650,6 @@
 
             // Add active class to clicked button
             event.target.classList.add('active');
-        }
-
-        function selectAllOrders(checkbox) {
-            const checkboxes = document.querySelectorAll('input[name="order-select"]');
-            checkboxes.forEach(cb => cb.checked = checkbox.checked);
         }
 
         // Event listeners
@@ -581,6 +675,7 @@
 
     <script src="../js/session.js"></script>
     <script src="../js/auth.js"></script>
+    <script src="../js/inventory.js"></script>
     <script src="../js/sales.js"></script>
 </body>
 </html>
