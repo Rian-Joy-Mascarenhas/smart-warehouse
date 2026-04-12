@@ -27,7 +27,7 @@ timeout /t 2 /nobreak
 
 REM Open browser
 echo Opening browser...
-start http://localhost:8000/frontend/index.html
+start frontend/index.html
 
 echo.
 echo ============================================

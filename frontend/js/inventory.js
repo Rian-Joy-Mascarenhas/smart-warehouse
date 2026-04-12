@@ -95,8 +95,8 @@ class InventoryManager {
         });
     }
 
-    /**
-     * Load products
+        /**
+     * Load products - FIXED
      */
     async loadProducts(page = 1, search = '', categoryId = '') {
         try {
@@ -104,7 +104,7 @@ class InventoryManager {
 
             let url = `${this.apiUrl}/inventory/products?page=${page}&per_page=${this.itemsPerPage}`;
             if (search) url += `&search=${encodeURIComponent(search)}`;
-            if (categoryId) url += `&category_id=${categoryId}`;
+            if (categoryId) url += `&category_id=${encodeURIComponent(categoryId)}`;
 
             const response = await fetch(url, {
                 method: 'GET',
@@ -113,14 +113,32 @@ class InventoryManager {
 
             const data = await response.json();
 
+            console.log('Products response:', data); // DEBUG
+
             if (response.ok) {
-                this.displayProducts(data.data.products);
-                this.displayPagination(data.data.pagination);
-                this.loadInventoryStats();
+                // Check if data exists and has products
+                if (data && data.data && data.data.products) {
+                    this.displayProducts(data.data.products);
+                    this.displayPagination(data.data.pagination);
+                    this.loadInventoryStats();
+                } else if (data && data.products) {
+                    // Alternative response structure
+                    this.displayProducts(data.products);
+                    if (data.pagination) {
+                        this.displayPagination(data.pagination);
+                    }
+                    this.loadInventoryStats();
+                } else {
+                    console.error('Unexpected response structure:', data);
+                    this.showAlert('error', 'Unexpected response from server');
+                }
+            } else {
+                console.error('API error:', data.message);
+                this.showAlert('error', data.message || 'Failed to load products');
             }
         } catch (error) {
             console.error('Load products error:', error);
-            this.showAlert('error', 'Failed to load products');
+            this.showAlert('error', 'Failed to load products: ' + error.message);
         } finally {
             this.hideLoading('productsTable');
         }
@@ -143,7 +161,7 @@ class InventoryManager {
         products.forEach(product => {
             const lowStock = product.quantity < product.min_stock;
             const row = document.createElement('tr');
-            row.style.backgroundColor = lowStock ? '#fff3cd' : '';
+            row.style.backgroundColor = lowStock ? '#ef7000' : '';
 
             row.innerHTML = `
                 <td>${product.sku}</td>
@@ -203,52 +221,108 @@ class InventoryManager {
         }
     }
 
-    /**
-     * Handle add product form
+        /**
+     * Handle add product - FIXED WITH VALIDATION
      */
     async handleAddProduct(e) {
         e.preventDefault();
 
-        const formData = {
-            name: document.getElementById('productName')?.value.trim(),
-            sku: document.getElementById('productSku')?.value.trim(),
-            price: document.getElementById('productPrice')?.value,
-            quantity: document.getElementById('productQuantity')?.value,
-            min_stock: document.getElementById('productMinStock')?.value,
-            max_stock: document.getElementById('productMaxStock')?.value,
-            category_id: document.getElementById('productCategory')?.value,
-            description: document.getElementById('productDescription')?.value.trim()
-        };
+        // Get form values
+        const name = document.getElementById('productName')?.value.trim();
+        const sku = document.getElementById('productSku')?.value.trim();
+        const categoryId = document.getElementById('productCategory')?.value.trim();
+        const price = document.getElementById('productPrice')?.value;
+        const quantity = document.getElementById('productQuantity')?.value;
+        const minStock = document.getElementById('productMinStock')?.value;
+        const maxStock = document.getElementById('productMaxStock')?.value;
+        const description = document.getElementById('productDescription')?.value.trim();
 
-        // Validate form
-        const validation = this.validateProductForm(formData);
-        if (!validation.valid) {
-            this.showAlert('error', validation.message);
+        // Validate required fields
+        if (!name || name.length < 2) {
+            this.showAlert('error', 'Product name is required (minimum 2 characters)');
             return;
         }
+        if (!sku || sku.length < 2) {
+            this.showAlert('error', 'SKU is required (minimum 2 characters)');
+            return;
+        }
+        if (!price || parseFloat(price) < 0) {
+            this.showAlert('error', 'Valid price is required');
+            return;
+        }
+        if (!quantity || parseInt(quantity) < 0) {
+            this.showAlert('error', 'Valid quantity is required');
+            return;
+        }
+        if (!minStock || parseInt(minStock) < 0) {
+            this.showAlert('error', 'Valid minimum stock is required');
+            return;
+        }
+        if (!maxStock || parseInt(maxStock) < 0) {
+            this.showAlert('error', 'Valid maximum stock is required');
+            return;
+        }
+
+        // Prepare form data
+        const formData = {
+            name: name,
+            sku: sku,
+            category_id: categoryId && categoryId !== '' ? categoryId : null,
+            price: parseFloat(price),
+            quantity: parseInt(quantity),
+            min_stock: parseInt(minStock),
+            max_stock: parseInt(maxStock),
+            description: description || ''
+        };
+
+        console.log('Form data being sent:', formData); // DEBUG
 
         try {
             this.showLoading('productForm');
 
             const response = await fetch(`${this.apiUrl}/inventory/products`, {
                 method: 'POST',
-                headers: sessionManager.getAuthHeaders(),
+                headers: {
+                    ...sessionManager.getAuthHeaders(),
+                    'Content-Type': 'application/json'
+                },
                 body: JSON.stringify(formData)
             });
 
             const data = await response.json();
 
+            console.log('API Response:', data); // DEBUG
+
             if (response.ok) {
                 this.showAlert('success', 'Product created successfully');
-                document.getElementById('productForm').reset();
-                this.loadProducts();
+                
+                // Close modal
                 this.closeModal('addProductModal');
+                
+                // Reset form
+                document.getElementById('productForm').reset();
+                
+                // Wait a moment then reload
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                // Go to first page and reload
+                this.currentPage = 1;
+                this.loadProducts();
+                
+                // Reload categories
+                this.loadCategories();
             } else {
-                this.showAlert('error', data.message);
+                // Show detailed error
+                if (data.data && data.data.errors) {
+                    this.showAlert('error', data.data.errors.join(', '));
+                } else {
+                    this.showAlert('error', data.message || 'Failed to create product');
+                }
+                console.error('API Error:', data);
             }
         } catch (error) {
             console.error('Add product error:', error);
-            this.showAlert('error', 'Failed to create product');
+            this.showAlert('error', 'Failed to create product: ' + error.message);
         } finally {
             this.hideLoading('productForm');
         }
@@ -289,44 +363,104 @@ class InventoryManager {
         }
     }
 
-    /**
-     * Handle update product
+        /**
+     * Handle update product - FIXED WITH VALIDATION
      */
     async handleUpdateProduct(e) {
         e.preventDefault();
 
         const productId = document.getElementById('editProductId').value;
+
+        // Get form values
+        const name = document.getElementById('editProductName')?.value.trim();
+        const sku = document.getElementById('editProductSku')?.value.trim();
+        const categoryId = document.getElementById('editProductCategory')?.value.trim();
+        const price = document.getElementById('editProductPrice')?.value;
+        const minStock = document.getElementById('editProductMinStock')?.value;
+        const maxStock = document.getElementById('editProductMaxStock')?.value;
+        const description = document.getElementById('editProductDescription')?.value.trim();
+
+        // Validate required fields
+        if (!name || name.length < 2) {
+            this.showAlert('error', 'Product name is required (minimum 2 characters)');
+            return;
+        }
+        if (!sku || sku.length < 2) {
+            this.showAlert('error', 'SKU is required (minimum 2 characters)');
+            return;
+        }
+        if (!price || parseFloat(price) < 0) {
+            this.showAlert('error', 'Valid price is required');
+            return;
+        }
+        if (!minStock || parseInt(minStock) < 0) {
+            this.showAlert('error', 'Valid minimum stock is required');
+            return;
+        }
+        if (!maxStock || parseInt(maxStock) < 0) {
+            this.showAlert('error', 'Valid maximum stock is required');
+            return;
+        }
+
+        // Prepare form data
         const formData = {
-            name: document.getElementById('editProductName')?.value.trim(),
-            sku: document.getElementById('editProductSku')?.value.trim(),
-            price: document.getElementById('editProductPrice')?.value,
-            min_stock: document.getElementById('editProductMinStock')?.value,
-            max_stock: document.getElementById('editProductMaxStock')?.value,
-            category_id: document.getElementById('editProductCategory')?.value,
-            description: document.getElementById('editProductDescription')?.value.trim()
+            name: name,
+            sku: sku,
+            category_id: categoryId && categoryId !== '' ? categoryId : null,
+            price: parseFloat(price),
+            min_stock: parseInt(minStock),
+            max_stock: parseInt(maxStock),
+            description: description || ''
         };
+
+        console.log('Form data being sent:', formData); // DEBUG
 
         try {
             this.showLoading('editProductForm');
 
             const response = await fetch(`${this.apiUrl}/inventory/products/${productId}`, {
                 method: 'PUT',
-                headers: sessionManager.getAuthHeaders(),
+                headers: {
+                    ...sessionManager.getAuthHeaders(),
+                    'Content-Type': 'application/json'
+                },
                 body: JSON.stringify(formData)
             });
 
             const data = await response.json();
 
+            console.log('API Response:', data); // DEBUG
+
             if (response.ok) {
                 this.showAlert('success', 'Product updated successfully');
-                this.loadProducts();
+                
+                // Close modal first
                 this.closeModal('editProductModal');
+                
+                // Reset form
+                document.getElementById('editProductForm').reset();
+                
+                // Wait a moment then reload products
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                // Reload products
+                this.currentPage = 1;
+                this.loadProducts();
+                
+                // Reload categories dropdown
+                this.loadCategories();
             } else {
-                this.showAlert('error', data.message);
+                // Show detailed error
+                if (data.data && data.data.errors) {
+                    this.showAlert('error', data.data.errors.join(', '));
+                } else {
+                    this.showAlert('error', data.message || 'Failed to update product');
+                }
+                console.error('API Error:', data);
             }
         } catch (error) {
             console.error('Update product error:', error);
-            this.showAlert('error', 'Failed to update product');
+            this.showAlert('error', 'Failed to update product: ' + error.message);
         } finally {
             this.hideLoading('editProductForm');
         }

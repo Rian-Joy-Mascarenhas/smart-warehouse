@@ -5,177 +5,175 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Smart Warehouse</title>
     <link rel="stylesheet" href="../css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+    <!-- Particle Canvas -->
+    <canvas id="particles"></canvas>
+
+    <!-- Floating Shapes (subtle) -->
+    <div class="floating-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+    </div>
+
+    <!-- Navigation -->
     <nav>
         <div class="nav-container">
             <a href="dashboard.html" class="nav-logo">🏭 Smart Warehouse</a>
             <ul class="nav-links">
-                <li><a href="dashboard.html">Dashboard</a></li>
-                <li><a href="#profile" onclick="showProfileModal()">Profile</a></li>
-                <li><a href="#settings" onclick="showSettingsModal()">Settings</a></li>
                 <li><a href="inventory.html">Inventory</a></li>
+                <li><a href="sales.html">Sales</a></li>
+                <li><a href="#profile" onclick="showProfileModal()">Profile</a></li>
             </ul>
             <div class="nav-user">
-                <div class="user-info">Welcome, User</div>
+                <div class="user-info">Welcome, <span id="userName">User</span></div>
                 <button id="logoutBtn" class="btn-logout">Logout</button>
             </div>
         </div>
     </nav>
 
+    <!-- Main Container -->
     <div class="container">
-        <h1 style="margin-bottom: 2rem; color: #2c3e50;">Welcome to Smart Warehouse Dashboard</h1>
-
-        <div class="dashboard-container">
-            <div class="card">
-                <h3>📦 Inventory</h3>
-                <p>Manage your warehouse inventory</p>
-                <a href="inventory.html" class="btn btn-secondary">Manage Inventory</a>
+        <!-- Header -->
+        <div class="actions-header">
+            <div>
+                <h1>Dashboard</h1>
+                <p style="color: var(--text-muted); margin-top: 0.5rem;">Welcome back! Here's your warehouse overview</p>
             </div>
-
-            <div class="card">
-                <h3>🛒 Sales</h3>
-                <p>Track and manage sales orders</p>
-                <a href="sales.html" class="btn btn-secondary">View Sales</a>
-            </div>
-
-            <div class="card">
-                <h3>📄 Invoices</h3>
-                <p>Generate and manage invoices</p>
-                <a href="#invoices.html" class="btn btn-secondary">View Invoices</a>
-            </div>
-
-            <div class="card">
-                <h3>📊 Reports and Analytics</h3>
-                <p>View analytics and reports</p>
-                <a href="#analytics.html" class="btn btn-secondary">View Reports and Analytics</a>
+            <div class="action-buttons">
+                <button class="btn btn-secondary" onclick="window.location.href='#'">👤Profile</button>
+                <button class="btn btn-secondary" onclick="window.location.href='#'">⚙Settings</button>
             </div>
         </div>
 
-        <div class="table-container" style="margin-top: 2rem;">
-            <h2>Quick Stats</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Module</th>
-                        <th>Status</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Inventory Management</td>
-                        <td><span style="color: #27ae60;">✓ Active</span></td>
-                        <td><button class="btn btn-secondary" onclick="navigateTo('#inventory')">Manage</button></td>
-                    </tr>
-                    <tr>
-                        <td>Sales Management</td>
-                        <td><span style="color: #27ae60;">✓ Active</span></td>
-                        <td><button class="btn btn-secondary" onclick="navigateTo('#sales')">Manage</button></td>
-                    </tr>
-                    <tr>
-                        <td>Invoice Generation</td>
-                        <td><span style="color: #27ae60;">✓ Active</span></td>
-                        <td><button class="btn btn-secondary" onclick="navigateTo('#invoices')">Manage</button></td>
-                    </tr>
-                    <tr>
-                        <td>Reports & Analytics</td>
-                        <td><span style="color: #27ae60;">✓ Active</span></td>
-                        <td><button class="btn btn-secondary" onclick="navigateTo('#reports')">View</button></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- Profile Modal -->
-    <div id="profileModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>My Profile</h2>
-                <button type="button" class="modal-close" onclick="closeModal('profileModal')">&times;</button>
+        <!-- Stats Container -->
+        <div class="stats-container">
+            <!-- Total Products Card -->
+            <div class="stat-card">
+                <h3>📦 Total Products</h3>
+                <div class="stat-value" id="totalProducts">0</div>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.5rem;">Active products in warehouse</p>
             </div>
-            <form id="profileForm">
-                <div class="form-group">
-                    <label for="profileUsername">Username</label>
-                    <input type="text" id="profileUsername" readonly style="background-color: #ecf0f1;">
+
+            <!-- Low Stock Alert Card -->
+            <div class="stat-card">
+                <h3>⚠️ Low Stock Items</h3>
+                <div class="stat-value" id="lowStockCount">0</div>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.5rem;">Products below minimum level</p>
+            </div>
+
+            <!-- Inventory Value Card -->
+            <div class="stat-card">
+                <h3>💰 Inventory Value</h3>
+                <div class="stat-value" id="inventoryValue">$0.00</div>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.5rem;">Total warehouse value</p>
+            </div>
+
+            <!-- Total Orders Card -->
+            <div class="stat-card">
+                <h3>📋 Total Orders</h3>
+                <div class="stat-value" id="totalOrders">0</div>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.5rem;">All time sales orders</p>
+            </div>
+
+            <!-- Total Revenue Card -->
+            <div class="stat-card">
+                <h3>💵 Total Revenue</h3>
+                <div class="stat-value" id="totalRevenue">$0.00</div>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.5rem;">From completed sales</p>
+            </div>
+
+            <!-- Pending Orders Card -->
+            <div class="stat-card">
+                <h3>⏳ Pending Orders</h3>
+                <div class="stat-value" id="pendingOrders">0</div>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.5rem;">Orders awaiting confirmation</p>
+            </div>
+        </div>
+
+        <!-- Quick Links -->
+        <div style="margin-top: 3rem;">
+            <h2 style="margin-bottom: 1.5rem; background: linear-gradient(135deg, var(--primary-color), var(--accent-color)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Quick Actions</h2>
+            <div class="dashboard-container">
+                <div class="card">
+                    <h3>📦 Inventory Management</h3>
+                    <p>Track and manage your warehouse inventory. Monitor stock levels and product information.</p>
+                    <button class="btn btn-primary" style="margin-top: 1rem; width: 100%;" onclick="window.location.href='inventory.html'">Go to Inventory</button>
                 </div>
-                <div class="form-group">
-                    <label for="profileFullName">Full Name</label>
-                    <input type="text" id="profileFullName" placeholder="Enter full name">
+
+                <div class="card">
+                    <h3>🛒 Sales Orders</h3>
+                    <p>Create and manage sales orders. Track order status and customer information.</p>
+                    <button class="btn btn-primary" style="margin-top: 1rem; width: 100%;" onclick="window.location.href='sales.html'">Manage Sales</button>
                 </div>
-                <div class="form-group">
-                    <label for="profileEmail">Email</label>
-                    <input type="email" id="profileEmail" placeholder="Enter email">
+
+                <div class="card">
+                    <h3>📃 Invoice Generation</h3>
+                    <p>Generate and manage invoices for your sales orders.</p>
+                    <button class="btn btn-primary" style="margin-top: 1rem; width: 100%;" onclick="window.location.href='invoices.html'">Generate Invoice</button>
                 </div>
-                <div class="form-group">
-                    <label for="profileCreatedAt">Member Since</label>
-                    <input type="text" id="profileCreatedAt" readonly style="background-color: #ecf0f1;">
+
+                <div class="card">
+                    <h3>📊 Reports and Analytics</h3>
+                    <p>View detailed reports and analytics for your Warehouse.</p>
+                    <button class="btn btn-primary" style="margin-top: 1rem; width: 100%;" onclick="window.location.href='reports.html'">View Reports</button>
                 </div>
-                <button type="submit" class="btn btn-primary">Update Profile</button>
-            </form>
+            </div>
         </div>
     </div>
 
-    <!-- Settings Modal -->
-    <div id="settingsModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Account Settings</h2>
-                <button type="button" class="modal-close" onclick="closeModal('settingsModal')">&times;</button>
-            </div>
-            <form id="passwordForm">
-                <div class="form-group">
-                    <label for="oldPassword">Old Password</label>
-                    <input type="password" id="oldPassword" placeholder="Enter old password" required>
-                </div>
-                <div class="form-group">
-                    <label for="newPassword">New Password</label>
-                    <input type="password" id="newPassword" placeholder="Enter new password" required>
-                </div>
-                <div class="form-group">
-                    <label for="confirmPassword">Confirm Password</label>
-                    <input type="password" id="confirmPassword" placeholder="Confirm new password" required>
-                </div>
-                <button type="submit" class="btn btn-primary">Change Password</button>
-            </form>
-        </div>
-    </div>
-
+    <!-- Scripts -->
+    <script src="../js/particles.js"></script>
+    <script src="../js/session.js"></script>
+    <script src="../js/auth.js"></script>
     <script>
-        // Modal functions
-        function showProfileModal() {
-            document.getElementById('profileModal').classList.add('show');
-        }
+        // Load dashboard statistics
+        async function loadDashboardStats() {
+            try {
+                // Load inventory stats
+                const inventoryResponse = await fetch('http://localhost:5000/api/inventory/statistics', {
+                    method: 'GET',
+                    headers: sessionManager.getAuthHeaders()
+                });
+                const inventoryData = await inventoryResponse.json();
 
-        function showSettingsModal() {
-            document.getElementById('settingsModal').classList.add('show');
-        }
+                if (inventoryResponse.ok) {
+                    document.getElementById('totalProducts').textContent = inventoryData.data.total_products;
+                    document.getElementById('lowStockCount').textContent = inventoryData.data.low_stock_count;
+                    document.getElementById('inventoryValue').textContent = `$${inventoryData.data.total_inventory_value.toFixed(2)}`;
+                }
 
-        function closeModal(modalId) {
-            document.getElementById(modalId).classList.remove('show');
-        }
+                // Load sales stats
+                const salesResponse = await fetch('http://localhost:5000/api/sales/statistics', {
+                    method: 'GET',
+                    headers: sessionManager.getAuthHeaders()
+                });
+                const salesData = await salesResponse.json();
 
-        function navigateTo(section) {
-            alert('Coming soon: ' + section);
-        }
-
-        // Close modal when clicking outside
-        window.addEventListener('click', (e) => {
-            if (e.target.classList.contains('modal')) {
-                e.target.classList.remove('show');
+                if (salesResponse.ok) {
+                    document.getElementById('totalOrders').textContent = salesData.data.total_orders;
+                    document.getElementById('totalRevenue').textContent = `$${salesData.data.total_revenue.toFixed(2)}`;
+                    document.getElementById('pendingOrders').textContent = salesData.data.pending_orders;
+                }
+            } catch (error) {
+                console.error('Load stats error:', error);
             }
-        });
+        }
 
-        // Check authentication on page load
+        // Load stats on page load
         document.addEventListener('DOMContentLoaded', () => {
-            if (!sessionManager.isAuthenticated()) {
+            if (sessionManager.isAuthenticated()) {
+                const user = sessionManager.getUser();
+                document.getElementById('userName').textContent = user.username || 'User';
+                loadDashboardStats();
+            } else {
                 window.location.href = 'login.html';
             }
         });
-    </script>
 
-    <script src="../js/session.js"></script>
-    <script src="../js/auth.js"></script>
+        // Refresh stats every 30 seconds
+        setInterval(loadDashboardStats, 30000);
+    </script>
 </body>
 </html>
