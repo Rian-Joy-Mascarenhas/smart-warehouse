@@ -19,7 +19,7 @@ class User:
     collection.create_index('username', unique=True)
 
     @staticmethod
-    def create_user(username, email, password_hash, full_name, role='user'):
+    def create_user(username, email, password_hash, mobile, role='user'):
         """
         Create a new user in the database
         
@@ -37,7 +37,7 @@ class User:
             'username': username,
             'email': email,
             'password': password_hash,
-            'full_name': full_name,
+            'mobile': mobile,
             'role': role,
             'created_at': datetime.utcnow(),
             'updated_at': datetime.utcnow(),

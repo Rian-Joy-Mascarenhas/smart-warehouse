@@ -166,7 +166,7 @@ class InventoryManager {
             row.innerHTML = `
                 <td>${product.sku}</td>
                 <td>${product.name}</td>
-                <td>$${product.price.toFixed(2)}</td>
+                <td>₹${product.price.toFixed(2)}</td>
                 <td>${product.quantity}</td>
                 <td>${product.min_stock}</td>
                 <td>${product.max_stock}</td>
@@ -587,7 +587,7 @@ class InventoryManager {
                     document.getElementById('lowStockCount').textContent = stats.low_stock_count;
                 }
                 if (document.getElementById('totalInventoryValue')) {
-                    document.getElementById('totalInventoryValue').textContent = `$${stats.total_inventory_value.toFixed(2)}`;
+                    document.getElementById('totalInventoryValue').textContent = `₹${stats.total_inventory_value.toFixed(2)}`;
                 }
             }
         } catch (error) {

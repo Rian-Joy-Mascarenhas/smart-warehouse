@@ -34,10 +34,10 @@ def register():
         username = data.get('username', '').strip()
         email = data.get('email', '').strip()
         password = data.get('password', '')
-        full_name = data.get('full_name', '').strip()
+        mobile = data.get('mobile', '').strip()
         
         # Validate required fields
-        if not all([username, email, password, full_name]):
+        if not all([username, email, password, mobile]):
             return create_response('error', 'All fields are required', status_code=400)
         
         # Validate username
@@ -62,7 +62,7 @@ def register():
         
         # Hash password and create user
         password_hash = hash_password(password)
-        user = User.create_user(username, email, password_hash, full_name)
+        user = User.create_user(username, email, password_hash, mobile)
         
         if user:
             # Remove sensitive data from response

@@ -88,7 +88,7 @@ class SalesManager {
         products.forEach(product => {
             const option = document.createElement('option');
             option.value = product._id;
-            option.textContent = `${product.name} (${product.sku}) - $${product.price.toFixed(2)} - Stock: ${product.quantity}`;
+            option.textContent = `${product.name} (${product.sku}) - ₹${product.price.toFixed(2)} - Stock: ${product.quantity}`;
             option.dataset.price = product.price;
             option.dataset.name = product.name;
             select.appendChild(option);
@@ -193,7 +193,7 @@ class SalesManager {
                 <td>${customer.phone}</td>
                 <td>${customer.city}, ${customer.state}</td>
                 <td>${customer.total_orders}</td>
-                <td>$${customer.total_spent.toFixed(2)}</td>
+                <td>₹${customer.total_spent.toFixed(2)}</td>
                 <td>
                     <button class="btn btn-sm btn-edit" onclick="salesManager.editCustomer('${customer._id}')">Edit</button>
                     <button class="btn btn-sm btn-delete" onclick="salesManager.deleteCustomer('${customer._id}')">Delete</button>
@@ -416,7 +416,7 @@ class SalesManager {
                         <tr>
                             <td>${order.order_number}</td>
                             <td>${new Date(order.created_at).toLocaleDateString()}</td>
-                            <td>$${order.total_amount.toFixed(2)}</td>
+                            <td>₹${order.total_amount.toFixed(2)}</td>
                             <td>${order.status}</td>
                         </tr>
                     `;
@@ -503,7 +503,7 @@ class SalesManager {
                 <td>${order.order_number}</td>
                 <td>${new Date(order.created_at).toLocaleDateString()}</td>
                 <td>${productNames}</td>
-                <td>$${order.total_amount.toFixed(2)}</td>
+                <td>₹${order.total_amount.toFixed(2)}</td>
                 <td>${order.total_quantity}</td>
                 <td><span class="status-badge ${statusClass}">${order.status}</span></td>
                 <td><span class="payment-badge ${order.payment_status === 'PAID' ? 'paid' : 'unpaid'}">${order.payment_status}</span></td>
@@ -606,8 +606,8 @@ class SalesManager {
             row.innerHTML = `
                 <td>${item.product_name}</td>
                 <td style="text-align: center;">${item.quantity}</td>
-                <td style="text-align: right;">$${item.price.toFixed(2)}</td>
-                <td style="text-align: right;">$${itemTotal.toFixed(2)}</td>
+                <td style="text-align: right;">₹${item.price.toFixed(2)}</td>
+                <td style="text-align: right;">₹${itemTotal.toFixed(2)}</td>
                 <td style="text-align: center;">
                     <button type="button" class="btn btn-sm btn-delete" onclick="salesManager.removeOrderItem(${index})">Remove</button>
                 </td>
@@ -620,9 +620,9 @@ class SalesManager {
         const tax = subtotal * 0.1;
         const total = subtotal + tax;
 
-        document.getElementById('orderSubtotal').textContent = `$${subtotal.toFixed(2)}`;
-        document.getElementById('orderTax').textContent = `$${tax.toFixed(2)}`;
-        document.getElementById('orderTotal').textContent = `$${total.toFixed(2)}`;
+        document.getElementById('orderSubtotal').textContent = `₹${subtotal.toFixed(2)}`;
+        document.getElementById('orderTax').textContent = `₹${tax.toFixed(2)}`;
+        document.getElementById('orderTotal').textContent = `₹${total.toFixed(2)}`;
     }
 
     /**
@@ -708,8 +708,8 @@ class SalesManager {
                         <tr>
                             <td>${productName}</td>
                             <td>${item.quantity}</td>
-                            <td>$${item.price.toFixed(2)}</td>
-                            <td>$${(item.quantity * item.price).toFixed(2)}</td>
+                            <td>₹${item.price.toFixed(2)}</td>
+                            <td>₹${(item.quantity * item.price).toFixed(2)}</td>
                         </tr>
                     `;
                 });
@@ -726,7 +726,7 @@ class SalesManager {
                     <div style="padding: 1.5rem;">
                         <p><strong>Status:</strong> ${order.status}</p>
                         <p><strong>Payment Status:</strong> ${order.payment_status}</p>
-                        <p><strong>Total Amount:</strong> $${order.total_amount.toFixed(2)}</p>
+                        <p><strong>Total Amount:</strong> ₹${order.total_amount.toFixed(2)}</p>
                         <h3>Items</h3>
                         ${itemsHTML}
                     </div>
@@ -762,7 +762,7 @@ class SalesManager {
                 document.getElementById('editOrderStatus').value = order.status;
                 document.getElementById('editPaymentStatus').value = order.payment_status;
                 document.getElementById('editOrderNotes').value = order.notes || '';
-                document.getElementById('editOrderTotal').textContent = `$${order.total_amount.toFixed(2)}`;
+                document.getElementById('editOrderTotal').textContent = `₹${order.total_amount.toFixed(2)}`;
 
                 // Display items
                 const tbody = document.querySelector('#editOrderItemsTable tbody');
@@ -775,8 +775,8 @@ class SalesManager {
                     row.innerHTML = `
                         <td>${productName}</td>
                         <td>${item.quantity}</td>
-                        <td>$${item.price.toFixed(2)}</td>
-                        <td>$${(item.quantity * item.price).toFixed(2)}</td>
+                        <td>₹${item.price.toFixed(2)}</td>
+                        <td>₹${(item.quantity * item.price).toFixed(2)}</td>
                     `;
                     tbody.appendChild(row);
                 });
@@ -944,10 +944,10 @@ class SalesManager {
                     document.getElementById('totalOrders').textContent = stats.total_orders;
                 }
                 if (document.getElementById('totalRevenue')) {
-                    document.getElementById('totalRevenue').textContent = `$${stats.total_revenue.toFixed(2)}`;
+                    document.getElementById('totalRevenue').textContent = `₹${stats.total_revenue.toFixed(2)}`;
                 }
                 if (document.getElementById('avgOrderValue')) {
-                    document.getElementById('avgOrderValue').textContent = `$${stats.average_order_value.toFixed(2)}`;
+                    document.getElementById('avgOrderValue').textContent = `₹${stats.average_order_value.toFixed(2)}`;
                 }
                 if (document.getElementById('pendingOrders')) {
                     document.getElementById('pendingOrders').textContent = stats.pending_orders;

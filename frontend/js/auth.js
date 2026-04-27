@@ -66,10 +66,10 @@ class AuthManager {
         const username = document.getElementById('username')?.value.trim();
         const email = document.getElementById('email')?.value.trim();
         const password = document.getElementById('password')?.value;
-        const fullName = document.getElementById('fullName')?.value.trim();
+        const mobile = document.getElementById('mobile')?.value.trim();
 
         // Validation
-        if (!this.validateRegisterForm(username, email, password, fullName)) {
+        if (!this.validateRegisterForm(username, email, password, mobile)) {
             return;
         }
 
@@ -85,7 +85,7 @@ class AuthManager {
                     username,
                     email,
                     password,
-                    full_name: fullName
+                    mobile
                 })
             });
 
@@ -195,10 +195,10 @@ class AuthManager {
     async handleUpdateProfile(e) {
         e.preventDefault();
 
-        const fullName = document.getElementById('profileFullName')?.value.trim();
+        const mobile = document.getElementById('profileMobile')?.value.trim();
         const email = document.getElementById('profileEmail')?.value.trim();
 
-        if (!fullName || !email) {
+        if (!mobile || !email) {
             this.showAlert('error', 'All fields are required', 'profileForm');
             return;
         }
@@ -210,7 +210,7 @@ class AuthManager {
                 method: 'PUT',
                 headers: sessionManager.getAuthHeaders(),
                 body: JSON.stringify({
-                    full_name: fullName,
+                    mobile,
                     email
                 })
             });
@@ -298,12 +298,12 @@ class AuthManager {
                 const user = data.data.user;
                 
                 // Update profile form if exists
-                const profileFullName = document.getElementById('profileFullName');
+                const profileMobile = document.getElementById('profileMobile');
                 const profileEmail = document.getElementById('profileEmail');
                 const profileUsername = document.getElementById('profileUsername');
                 const profileCreatedAt = document.getElementById('profileCreatedAt');
 
-                if (profileFullName) profileFullName.value = user.full_name;
+                if (profileMobile) profileMobile.value = user.mobile;
                 if (profileEmail) profileEmail.value = user.email;
                 if (profileUsername) profileUsername.value = user.username;
                 if (profileCreatedAt) profileCreatedAt.textContent = new Date(user.created_at).toLocaleDateString();
@@ -323,7 +323,7 @@ class AuthManager {
     updateNavbar(user) {
         const userInfo = document.querySelector('.user-info');
         if (userInfo) {
-            userInfo.textContent = `Welcome, ${user.full_name || user.username}`;
+            userInfo.textContent = `Welcome, ${user.mobile || user.username}`;
         }
     }
 
@@ -331,7 +331,7 @@ class AuthManager {
      * Validate registration form
      * @returns {boolean} True if valid
      */
-    validateRegisterForm(username, email, password, fullName) {
+    validateRegisterForm(username, email, password, mobile) {
         const errors = {};
 
         if (!username) errors.username = 'Username is required';
@@ -343,7 +343,8 @@ class AuthManager {
         if (!password) errors.password = 'Password is required';
         if (password && password.length < 8) errors.password = 'Password must be at least 8 characters';
 
-        if (!fullName) errors.fullName = 'Full name is required';
+        if (!mobile) errors.mobile = 'Mobile number is required';
+        if (mobile && mobile.length < 10) errors.mobile = 'Mobile number must be at least 10 characters';
 
         if (Object.keys(errors).length > 0) {
             this.displayFormErrors(errors);
