@@ -47,10 +47,12 @@ def create_app(config_name=None):
     from routes.auth_routes import auth_bp
     from routes.inventory_routes import inventory_bp
     from routes.sales_routes import sales_bp
+    from routes.invoice_routes import invoice_bp  # NEW: Import invoice routes
     
     app.register_blueprint(auth_bp)
     app.register_blueprint(inventory_bp)
     app.register_blueprint(sales_bp)
+    app.register_blueprint(invoice_bp)  # NEW: Register invoice blueprint
     
     # Health check route
     @app.route('/api/health', methods=['GET'])
@@ -71,7 +73,8 @@ def create_app(config_name=None):
                 'health': '/api/health',
                 'auth': '/api/auth',
                 'inventory': '/api/inventory',
-                'sales': '/api/sales'
+                'sales': '/api/sales',
+                'invoice': '/api/invoice'  # NEW: Add invoice endpoint
             }
         }), 200
     
