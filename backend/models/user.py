@@ -17,17 +17,19 @@ class User:
     # Create index
     collection.create_index('email', unique=True)
     collection.create_index('username', unique=True)
+    collection.create_index('google_id', unique=True, sparse=True)
 
     @staticmethod
-    def create_user(username, email, password_hash, mobile, role='user'):
+    def create_user(username, email, password_hash=None, mobile=None, google_id=None, role='user'):
         """
         Create a new user in the database
         
         Args:
             username (str): Username
             email (str): Email address
-            password_hash (str): Hashed password
-            full_name (str): Full name of user
+            password_hash (str): Hashed password (optional for OAuth users)
+            mobile (str): Mobile number (optional)
+            google_id (str): Google user ID (optional for OAuth users)
             role (str): User role (default: 'user')
         
         Returns:
@@ -36,13 +38,18 @@ class User:
         user_data = {
             'username': username,
             'email': email,
-            'password': password_hash,
-            'mobile': mobile,
             'role': role,
             'created_at': datetime.utcnow(),
             'updated_at': datetime.utcnow(),
             'is_active': True
         }
+        
+        if password_hash:
+            user_data['password'] = password_hash
+        if mobile:
+            user_data['mobile'] = mobile
+        if google_id:
+            user_data['google_id'] = google_id
         
         result = User.collection.insert_one(user_data)
         if result.inserted_id:
@@ -67,6 +74,14 @@ class User:
     def find_by_username(username):
         """Find user by username"""
         user = User.collection.find_one({'username': username})
+        if user:
+            user['_id'] = str(user['_id'])
+        return user
+    
+    @staticmethod
+    def find_by_google_id(google_id):
+        """Find user by Google ID"""
+        user = User.collection.find_one({'google_id': google_id})
         if user:
             user['_id'] = str(user['_id'])
         return user
