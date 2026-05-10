@@ -27,7 +27,7 @@ class User:
             username (str): Username
             email (str): Email address
             password_hash (str): Hashed password
-            full_name (str): Full name of user
+            mobile (str): Mobile number
             role (str): User role (default: 'user')
         
         Returns:
@@ -39,6 +39,8 @@ class User:
             'password': password_hash,
             'mobile': mobile,
             'role': role,
+            'company_name': '',
+            'company_address': '',
             'created_at': datetime.utcnow(),
             'updated_at': datetime.utcnow(),
             'is_active': True
