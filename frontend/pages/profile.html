@@ -298,7 +298,7 @@
     <!-- Navigation -->
     <nav>
         <div class="nav-container">
-            <a href="../dashboard.html" class="nav-logo">🏭 Smart Warehouse</a>
+            <a href="dashboard.html" class="nav-logo">🏭 Smart Warehouse</a>
             <ul class="nav-links">
                 <li><a href="inventory.html">Inventory</a></li>
                 <li><a href="sales.html">Sales</a></li>
@@ -462,10 +462,8 @@
                 editBtn.classList.add('hidden');
                 actionButtons.classList.remove('hidden');
                 
-                // Disable username (shouldn't be editable)
-                document.getElementById('username').disabled = false;
-                
                 // Enable other fields
+                document.getElementById('username').disabled = false;
                 document.getElementById('email').disabled = false;
                 document.getElementById('mobile').disabled = false;
                 document.getElementById('companyName').disabled = false;

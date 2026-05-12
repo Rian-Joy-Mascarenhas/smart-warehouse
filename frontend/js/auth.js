@@ -194,11 +194,11 @@ class AuthManager {
      */
     async handleUpdateProfile(e) {
         e.preventDefault();
+        const username = document.getElementById('username')?.value.trim();
+        const mobile = document.getElementById('mobile')?.value.trim();
+        const email = document.getElementById('email')?.value.trim();
 
-        const mobile = document.getElementById('profileMobile')?.value.trim();
-        const email = document.getElementById('profileEmail')?.value.trim();
-
-        if (!mobile || !email) {
+        if (!username || !mobile || !email) {
             this.showAlert('error', 'All fields are required', 'profileForm');
             return;
         }
@@ -210,6 +210,7 @@ class AuthManager {
                 method: 'PUT',
                 headers: sessionManager.getAuthHeaders(),
                 body: JSON.stringify({
+                    username,
                     mobile,
                     email
                 })
