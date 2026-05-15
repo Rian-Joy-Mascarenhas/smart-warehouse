@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports & Analytics - Smart Warehouse</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        .reports-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        .reports-header {
+            margin-bottom: 2rem;
+        }
+
+        .reports-header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .reports-header p {
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        .date-filter {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .date-filter input,
+        .date-filter select {
+            padding: 0.75rem 1rem;
+            background: var(--bg-input);
+            border: 1.5px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-white);
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .date-filter input:focus,
+        .date-filter select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
+        }
+
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .chart-card h2 {
+            margin: 0 0 1.5rem 0;
+            font-size: 1.3rem;
+            color: var(--text-white);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 1rem;
+        }
+
+        .chart-container canvas {
+            max-height: 300px;
+        }
+
+        .product-analytics {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            margin-bottom: 2rem;
+        }
+
+        .product-analytics h2 {
+            font-size: 1.3rem;
+            color: var(--text-white);
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .product-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .product-stat-card {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(6, 182, 212, 0.1));
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .product-stat-card h3 {
+            margin: 0 0 1rem 0;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .product-stat-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .product-stat-label {
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        .product-table-container {
+            overflow-x: auto;
+            margin-top: 2rem;
+        }
+
+        .product-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .product-table thead {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(6, 182, 212, 0.1));
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .product-table th {
+            padding: 1rem;
+            text-align: left;
+            color: var(--text-light);
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+        }
+
+        .product-table td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-light);
+        }
+
+        .product-table tbody tr {
+            transition: all 0.3s ease;
+        }
+
+        .product-table tbody tr:hover {
+            background: rgba(168, 85, 247, 0.05);
+            border-bottom-color: var(--primary-color);
+        }
+
+        .rank-badge {
+            display: inline-block;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: white;
+            font-weight: 700;
+            text-align: center;
+            line-height: 28px;
+            font-size: 0.9rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-mini-card {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.05), rgba(6, 182, 212, 0.05));
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem;
+        }
+
+        .stat-mini-card h4 {
+            margin: 0 0 0.5rem 0;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-mini-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-mini-change {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .stat-mini-change.positive {
+            color: var(--success-color);
+        }
+
+        .stat-mini-change.negative {
+            color: var(--error-color);
+        }
+
+        .loading-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 400px;
+        }
+
+        .loading-spinner-large {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(168, 85, 247, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .export-buttons {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+        }
+
+        .btn-export {
+            background: linear-gradient(135deg, var(--secondary-color) 0%, #0891b2 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-export:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(6, 182, 212, 0.4);
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-muted);
+        }
+
+        .no-data-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        @media (max-width: 1024px) {
+            .chart-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .product-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .reports-container {
+                padding: 1rem;
+            }
+
+            .reports-header h1 {
+                font-size: 1.8rem;
+            }
+
+            .date-filter {
+                flex-direction: column;
+            }
+
+            .date-filter input,
+            .date-filter select {
+                width: 100%;
+            }
+
+            .chart-container {
+                height: 250px;
+            }
+
+            .product-table {
+                font-size: 0.9rem;
+            }
+
+            .product-table th,
+            .product-table td {
+                padding: 0.75rem;
+            }
+
+            .export-buttons {
+                flex-direction: column;
+            }
+
+            .btn-export {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Particle Canvas -->
+    <canvas id="particles"></canvas>
+
+    <!-- Floating Shapes -->
+    <div class="floating-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <a href="dashboard.html" class="nav-logo">🏭 Smart Warehouse</a>
+            <ul class="nav-links">
+                <li><a href="inventory.html">Inventory</a></li>
+                <li><a href="sales.html">Sales</a></li>
+                <li><a href="profile.html">Profile</a></li>
+            </ul>
+            <div class="nav-user">
+                <button id="logoutBtn" class="btn-logout">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="reports-container">
+        <!-- Header -->
+        <div class="reports-header">
+            <h1>📊 Reports & Analytics</h1>
+            <p>Comprehensive insights into your warehouse operations and sales performance</p>
+        </div>
+
+        <!-- Date Filter -->
+        <div class="date-filter">
+            <div style="flex: 1; min-width: 200px;">
+                <label style="color: var(--text-muted); font-size: 0.9rem; margin-right: 0.5rem;">Start Date:</label>
+                <input type="date" id="startDate">
+            </div>
+            <div style="flex: 1; min-width: 200px;">
+                <label style="color: var(--text-muted); font-size: 0.9rem; margin-right: 0.5rem;">End Date:</label>
+                <input type="date" id="endDate">
+            </div>
+            <button class="btn btn-primary" style="padding: 0.75rem 1.5rem;" onclick="applyDateFilter()">Apply Filter</button>
+            <button class="btn btn-secondary" style="padding: 0.75rem 1.5rem;" onclick="resetDateFilter()">Reset</button>
+        </div>
+
+        <!-- Export Buttons -->
+        <div class="export-buttons">
+            <button class="btn-export" onclick="exportChartAsImage('salesChart', 'monthly-sales.png')">
+                📥 Export Sales Chart
+            </button>
+            <button class="btn-export" onclick="exportChartAsImage('inventoryChart', 'inventory-breakdown.png')">
+                📥 Export Inventory Chart
+            </button>
+            <button class="btn-export" onclick="generatePDFReport()">
+                📄 Generate PDF Report
+            </button>
+        </div>
+
+        <!-- Summary Stats -->
+        <div class="stats-grid">
+            <div class="stat-mini-card">
+                <h4>Total Sales</h4>
+                <div class="stat-mini-value" id="totalSalesValue">₹0.00</div>
+                <div class="stat-mini-change positive" id="salesChange">+0% from last month</div>
+            </div>
+            <div class="stat-mini-card">
+                <h4>Total Orders</h4>
+                <div class="stat-mini-value" id="totalOrdersValue">0</div>
+                <div class="stat-mini-change" id="ordersChange">0 this month</div>
+            </div>
+            <div class="stat-mini-card">
+                <h4>Avg Order Value</h4>
+                <div class="stat-mini-value" id="avgOrderValue">₹0.00</div>
+                <div class="stat-mini-change" id="avgChange">Per order</div>
+            </div>
+            <div class="stat-mini-card">
+                <h4>Top Product Sales</h4>
+                <div class="stat-mini-value" id="topProductSales">0</div>
+                <div class="stat-mini-change" id="topProductName">-</div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="chart-grid">
+            <!-- Monthly Sales Chart -->
+            <div class="chart-card">
+                <h2>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="2" x2="12" y2="22"></line>
+                        <path d="M17 5H9.5a1.5 1.5 0 0 0 0 3h5a1.5 1.5 0 0 1 0 3h-5.5a1.5 1.5 0 0 0 0 3h5.5a1.5 1.5 0 0 1 0 3H9"></path>
+                    </svg>
+                    Monthly Sales
+                </h2>
+                <div class="chart-container">
+                    <canvas id="salesChart"></canvas>
+                </div>
+                <div style="text-align: center; color: var(--text-muted); font-size: 0.9rem;">Sales revenue for the last 12 months</div>
+            </div>
+
+            <!-- Inventory Breakdown Chart -->
+            <div class="chart-card">
+                <h2>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M12 2a10 10 0 0 0 0 20"></path>
+                        <path d="M12 2a10 10 0 0 1 0 20"></path>
+                    </svg>
+                    Inventory Breakdown
+                </h2>
+                <div class="chart-container">
+                    <canvas id="inventoryChart"></canvas>
+                </div>
+                <div style="text-align: center; color: var(--text-muted); font-size: 0.9rem;">Product distribution by category</div>
+            </div>
+
+            <!-- Order Status Chart -->
+            <div class="chart-card">
+                <h2>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="8" y1="6" x2="21" y2="6"></line>
+                        <line x1="8" y1="12" x2="21" y2="12"></line>
+                        <line x1="8" y1="18" x2="21" y2="18"></line>
+                        <path d="M3 6h3v3H3z"></path>
+                        <path d="M3 12h3v3H3z"></path>
+                        <path d="M3 18h3v3H3z"></path>
+                    </svg>
+                    Order Status Distribution
+                </h2>
+                <div class="chart-container">
+                    <canvas id="statusChart"></canvas>
+                </div>
+                <div style="text-align: center; color: var(--text-muted); font-size: 0.9rem;">Distribution of order statuses</div>
+            </div>
+
+            <!-- Payment Status Chart -->
+            <div class="chart-card">
+                <h2>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                        <line x1="1" y1="10" x2="23" y2="10"></line>
+                    </svg>
+                    Payment Status
+                </h2>
+                <div class="chart-container">
+                    <canvas id="paymentChart"></canvas>
+                </div>
+                <div style="text-align: center; color: var(--text-muted); font-size: 0.9rem;">Payment collection status</div>
+            </div>
+        </div>
+
+        <!-- Product Analytics -->
+        <div class="product-analytics">
+            <h2>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M6 9L12 13l6-4M12 3v16M3 7.5v9a3 3 0 0 0 3 3h12a3 3 0 0 0 3-3v-9"></path>
+                </svg>
+                Product Performance Analytics
+            </h2>
+
+            <div class="product-stats">
+                <div class="product-stat-card">
+                    <h3>🏆 Highest Selling Product</h3>
+                    <div class="product-stat-value" id="highestSelling">-</div>
+                    <div class="product-stat-label" id="highestSellingDetails">No data</div>
+                </div>
+                <div class="product-stat-card">
+                    <h3>📉 Lowest Selling Product</h3>
+                    <div class="product-stat-value" id="lowestSelling">-</div>
+                    <div class="product-stat-label" id="lowestSellingDetails">No data</div>
+                </div>
+                <div class="product-stat-card">
+                    <h3>📊 Total Products</h3>
+                    <div class="product-stat-value" id="totalProducts">0</div>
+                    <div class="product-stat-label">Active products in inventory</div>
+                </div>
+            </div>
+
+            <!-- Top Products Table -->
+            <div style="margin-top: 2rem;">
+                <h3 style="color: var(--text-white); margin-bottom: 1rem;">Top 10 Best Selling Products</h3>
+                <div class="product-table-container">
+                    <table class="product-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Product Name</th>
+                                <th>SKU</th>
+                                <th>Units Sold</th>
+                                <th>Revenue</th>
+                                <th>Avg Price</th>
+                            </tr>
+                        </thead>
+                        <tbody id="topProductsTableBody">
+                            <tr>
+                                <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;">Loading top products...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Low Selling Products Table -->
+            <div style="margin-top: 2rem;">
+                <h3 style="color: var(--text-white); margin-bottom: 1rem;">Top 10 Lowest Selling Products</h3>
+                <div class="product-table-container">
+                    <table class="product-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Product Name</th>
+                                <th>SKU</th>
+                                <th>Units Sold</th>
+                                <th>Revenue</th>
+                                <th>Current Stock</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lowProductsTableBody">
+                            <tr>
+                                <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;">Loading low selling products...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../js/particles.js"></script>
+    <script src="../js/session.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/reports.js"></script>
+</body>
+</html>
