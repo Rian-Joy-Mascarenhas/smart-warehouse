@@ -126,6 +126,8 @@
             <a href="dashboard.html" class="nav-logo">🏭 Smart Warehouse</a>
             <ul class="nav-links">
                 <li><a href="sales.html">Sales</a></li>
+                <li><a href="invoices.html">Invoice</a></li>
+                <li><a href="reports.html">Reports</a></li>
                 <li><a href="profile.html">Profile</a></li>
                 <li><a href="settings.html">Settings</a></li>
             </ul>
@@ -180,14 +182,13 @@
                             <th>Price</th>
                             <th>Quantity</th>
                             <th>Min Stock</th>
-                            <th>Max Stock</th>
                             <th>Status</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td colspan="8" style="text-align: center; padding: 2rem;">Loading products...</td>
+                            <td colspan="7" style="text-align: center; padding: 2rem;">Loading products...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -233,10 +234,6 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label for="productMaxStock">Max Stock *</label>
-                    <input type="number" id="productMaxStock" required min="0" placeholder="0">
-                </div>
-                <div class="form-group">
                     <label for="productDescription">Description</label>
                     <textarea id="productDescription" placeholder="Enter product description"></textarea>
                 </div>
@@ -273,10 +270,6 @@
                 <div class="form-group">
                     <label for="editProductMinStock">Min Stock</label>
                     <input type="number" id="editProductMinStock" min="0" required>
-                </div>
-                <div class="form-group">
-                    <label for="editProductMaxStock">Max Stock</label>
-                    <input type="number" id="editProductMaxStock" min="0" required>
                 </div>
                 <div class="form-group">
                     <label for="editProductDescription">Description</label>

@@ -237,11 +237,11 @@ class InvoiceManager {
             const itemTotal = item.quantity * item.price;
             itemsHTML += `
                 <tr>
-                    <td style="text-align: center;">${item.quantity}</td>
-                    <td>${item.product_id}</td>
-                    <td style="text-align: right;">₹${item.price.toFixed(2)}</td>
-                    <td style="text-align: right;">₹${itemTotal.toFixed(2)}</td>
-                    <td style="text-align: right;">₹${(itemTotal * 0.1).toFixed(2)}</td>
+                    <td style="text-align: center; color: #000;">${item.quantity}</td>
+                    <td style="color: #000;">${item.product_name}</td>
+                    <td style="text-align: right; color: #000;">₹${item.price.toFixed(2)}</td>
+                    <td style="text-align: right; color: #000;">₹${itemTotal.toFixed(2)}</td>
+                    <td style="text-align: right; color: #000;">₹${(itemTotal * 0.1).toFixed(2)}</td>
                 </tr>
             `;
         });
@@ -283,6 +283,7 @@ class InvoiceManager {
                     <div>
                         <div style="font-weight: bold; color: #27a87d; margin-bottom: 0.5rem;">Seller</div>
                         <div>${company.username || company.email}</div>
+                        <div>${company.company_name || 'N/A'}</div>
                         <div>${company.company_address || 'N/A'}</div>
                     </div>
                 </div>
@@ -418,11 +419,11 @@ class InvoiceManager {
             subtotal += itemTotal;
             itemsHTML += `
                 <tr>
-                    <td style="text-align: center; padding: 0.75rem; border: 1px solid #ddd;">${item.quantity}</td>
-                    <td style="padding: 0.75rem; border: 1px solid #ddd;">${item.product_id}</td>
-                    <td style="text-align: right; padding: 0.75rem; border: 1px solid #ddd;">₹${item.price.toFixed(2)}</td>
-                    <td style="text-align: right; padding: 0.75rem; border: 1px solid #ddd;">₹${itemTotal.toFixed(2)}</td>
-                    <td style="text-align: right; padding: 0.75rem; border: 1px solid #ddd;">₹${(itemTotal * 0.1).toFixed(2)}</td>
+                    <td style="text-align: center; padding: 0.75rem; border: 1px solid #ddd; color: #000;">${item.quantity}</td>
+                    <td style="padding: 0.75rem; border: 1px solid #ddd; color: #000;">${item.product_name}</td>
+                    <td style="text-align: right; padding: 0.75rem; border: 1px solid #ddd; color: #000;">₹${item.price.toFixed(2)}</td>
+                    <td style="text-align: right; padding: 0.75rem; border: 1px solid #ddd; color: #000;">₹${itemTotal.toFixed(2)}</td>
+                    <td style="text-align: right; padding: 0.75rem; border: 1px solid #ddd; color: #000;">₹${(itemTotal * 0.1).toFixed(2)}</td>
                 </tr>
             `;
         });
@@ -460,6 +461,7 @@ class InvoiceManager {
                     <div>
                         <div style="font-weight: bold; color: #27a87d; margin-bottom: 0.5rem;">Seller</div>
                         <div>${company.username || company.email}</div>
+                        <div>${company.company_name || 'N/A'}</div>
                         <div>${company.company_address || 'N/A'}</div>
                     </div>
                 </div>

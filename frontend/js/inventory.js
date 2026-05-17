@@ -154,7 +154,7 @@ class InventoryManager {
         tbody.innerHTML = '';
 
         if (products.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 2rem;">No products found</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem;">No products found</td></tr>';
             return;
         }
 
@@ -169,7 +169,6 @@ class InventoryManager {
                 <td>₹${product.price.toFixed(2)}</td>
                 <td>${product.quantity}</td>
                 <td>${product.min_stock}</td>
-                <td>${product.max_stock}</td>
                 <td>
                     <span class="stock-badge ${lowStock ? 'low-stock' : 'normal-stock'}">
                         ${lowStock ? '⚠️ Low Stock' : '✓ In Stock'}
@@ -234,7 +233,6 @@ class InventoryManager {
         const price = document.getElementById('productPrice')?.value;
         const quantity = document.getElementById('productQuantity')?.value;
         const minStock = document.getElementById('productMinStock')?.value;
-        const maxStock = document.getElementById('productMaxStock')?.value;
         const description = document.getElementById('productDescription')?.value.trim();
 
         // Validate required fields
@@ -258,10 +256,6 @@ class InventoryManager {
             this.showAlert('error', 'Valid minimum stock is required');
             return;
         }
-        if (!maxStock || parseInt(maxStock) < 0) {
-            this.showAlert('error', 'Valid maximum stock is required');
-            return;
-        }
 
         // Prepare form data
         const formData = {
@@ -271,7 +265,6 @@ class InventoryManager {
             price: parseFloat(price),
             quantity: parseInt(quantity),
             min_stock: parseInt(minStock),
-            max_stock: parseInt(maxStock),
             description: description || ''
         };
 
@@ -349,7 +342,6 @@ class InventoryManager {
                 document.getElementById('editProductSku').value = product.sku;
                 document.getElementById('editProductPrice').value = product.price;
                 document.getElementById('editProductMinStock').value = product.min_stock;
-                document.getElementById('editProductMaxStock').value = product.max_stock;
                 document.getElementById('editProductCategory').value = product.category_id || '';
                 document.getElementById('editProductDescription').value = product.description || '';
 
@@ -377,7 +369,6 @@ class InventoryManager {
         const categoryId = document.getElementById('editProductCategory')?.value.trim();
         const price = document.getElementById('editProductPrice')?.value;
         const minStock = document.getElementById('editProductMinStock')?.value;
-        const maxStock = document.getElementById('editProductMaxStock')?.value;
         const description = document.getElementById('editProductDescription')?.value.trim();
 
         // Validate required fields
@@ -397,10 +388,6 @@ class InventoryManager {
             this.showAlert('error', 'Valid minimum stock is required');
             return;
         }
-        if (!maxStock || parseInt(maxStock) < 0) {
-            this.showAlert('error', 'Valid maximum stock is required');
-            return;
-        }
 
         // Prepare form data
         const formData = {
@@ -409,7 +396,6 @@ class InventoryManager {
             category_id: categoryId && categoryId !== '' ? categoryId : null,
             price: parseFloat(price),
             min_stock: parseInt(minStock),
-            max_stock: parseInt(maxStock),
             description: description || ''
         };
 
@@ -648,10 +634,6 @@ class InventoryManager {
         if (!formData.price || parseFloat(formData.price) < 0) return { valid: false, message: 'Valid price is required' };
         if (!formData.quantity || parseInt(formData.quantity) < 0) return { valid: false, message: 'Valid quantity is required' };
         if (!formData.min_stock || parseInt(formData.min_stock) < 0) return { valid: false, message: 'Valid minimum stock is required' };
-        if (!formData.max_stock || parseInt(formData.max_stock) < 0) return { valid: false, message: 'Valid maximum stock is required' };
-        if (parseInt(formData.min_stock) > parseInt(formData.max_stock)) {
-            return { valid: false, message: 'Minimum stock cannot be greater than maximum stock' };
-        }
 
         return { valid: true };
     }

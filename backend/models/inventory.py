@@ -20,7 +20,7 @@ class Inventory:
 
     # ===================== PRODUCT OPERATIONS =====================
 
-    def create_product(self, name, sku, category_id, price, quantity, min_stock, max_stock, description, created_by):
+    def create_product(self, name, sku, category_id, price, quantity, min_stock, description, created_by):
         """Create a new product"""
         try:
             product_data = {
@@ -30,7 +30,6 @@ class Inventory:
                 'price': float(price),
                 'quantity': int(quantity),
                 'min_stock': int(min_stock),
-                'max_stock': int(max_stock),
                 'description': description,
                 'created_by': ObjectId(created_by),
                 'created_at': datetime.utcnow(),
