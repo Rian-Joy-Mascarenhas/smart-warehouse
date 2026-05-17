@@ -250,7 +250,7 @@ class InvoiceManager {
             <div style="padding: 2rem; background: white; color: black; font-family: Arial, sans-serif;">
                 <!-- Header -->
                 <div style="text-align: center; margin-bottom: 2rem;">
-                    <h1 style="color: #27a87d; margin: 0; font-size: 2rem;">Warehouse Receipt</h1>
+                    <h1 style="color: #27a87d; margin: 0; font-size: 2rem;"><div>${company.company_name || ''}</div> Receipt</h1>
                 </div>
 
                 <!-- Receipt Info -->
@@ -282,8 +282,8 @@ class InvoiceManager {
                     </div>
                     <div>
                         <div style="font-weight: bold; color: #27a87d; margin-bottom: 0.5rem;">Seller</div>
-                        <div>${company.username || company.email}</div>
-                        <div>${company.company_name || 'N/A'}</div>
+                        <div>${company.username || 'N/A'}</div>
+                        <div>${company.email || 'N/A'}</div>
                         <div>${company.company_address || 'N/A'}</div>
                     </div>
                 </div>
@@ -431,7 +431,7 @@ class InvoiceManager {
         return `
             <div style="padding: 2rem; background: white; color: black; font-family: Arial, sans-serif; width: 100%;">
                 <div style="text-align: center; margin-bottom: 2rem;">
-                    <h1 style="color: #27a87d; margin: 0; font-size: 2rem;">Warehouse Receipt</h1>
+                    <h1 style="color: #27a87d; margin: 0; font-size: 2rem;"><div>${company.company_name || ''}</div> Receipt</h1>
                 </div>
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2rem; margin-bottom: 2rem; text-align: center; font-size: 0.9rem;">
@@ -460,8 +460,8 @@ class InvoiceManager {
                     </div>
                     <div>
                         <div style="font-weight: bold; color: #27a87d; margin-bottom: 0.5rem;">Seller</div>
-                        <div>${company.username || company.email}</div>
-                        <div>${company.company_name || 'N/A'}</div>
+                        <div>${company.username || 'N/A'}</div>
+                        <div>${company.email || 'N/A'}</div>
                         <div>${company.company_address || 'N/A'}</div>
                     </div>
                 </div>

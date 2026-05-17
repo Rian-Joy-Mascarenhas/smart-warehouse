@@ -93,7 +93,7 @@ def create_invoice(user_id):
         invoice_mgr = Invoice(user_id)
         existing_invoice = invoice_mgr.find_invoice_by_order(order_id)
         
-        if existing_invoice:
+        if existing_invoice== True:
             return create_response('error', 'Invoice already exists for this order', status_code=409)
         
         # Verify order exists
