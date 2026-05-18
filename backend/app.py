@@ -47,10 +47,12 @@ def create_app(config_name=None):
     from routes.auth_routes import auth_bp
     from routes.inventory_routes import inventory_bp
     from routes.sales_routes import sales_bp
+    from routes.invoice_routes import invoice_bp
     
     app.register_blueprint(auth_bp)
     app.register_blueprint(inventory_bp)
     app.register_blueprint(sales_bp)
+    app.register_blueprint(invoice_bp)
     
     # Health check route
     @app.route('/api/health', methods=['GET'])

@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports & Analytics - Smart Warehouse</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        .reports-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        .reports-header {
+            margin-bottom: 2rem;
+        }
+
+        .reports-header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .reports-header p {
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .chart-card h2 {
+            margin: 0 0 1.5rem 0;
+            font-size: 1.3rem;
+            color: var(--text-white);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 1rem;
+        }
+
+        .chart-container canvas {
+            max-height: 300px;
+        }
+
+        .product-analytics {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            margin-bottom: 2rem;
+        }
+
+        .product-analytics h2 {
+            font-size: 1.3rem;
+            color: var(--text-white);
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .product-card {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(6, 182, 212, 0.1));
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .product-card:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 8px 24px rgba(168, 85, 247, 0.15);
+            transform: translateY(-4px);
+        }
+
+        .rank-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .product-name {
+            color: var(--text-white);
+            margin: 0.75rem 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .product-sku {
+            color: var(--text-muted);
+            margin: 0.5rem 0;
+            font-size: 0.9rem;
+        }
+
+        .product-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .stat-box {
+            background: rgba(168, 85, 247, 0.2);
+            padding: 1rem;
+            border-radius: 8px;
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin: 0;
+        }
+
+        .stat-value {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 0.5rem 0 0 0;
+        }
+
+        .stat-value.revenue {
+            color: var(--secondary-color);
+        }
+
+        .two-column-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 1024px) {
+            .chart-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .two-column-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .products-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-container {
+                height: 250px;
+            }
+
+            .reports-header h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Particle Canvas -->
+    <canvas id="particles"></canvas>
+
+    <!-- Floating Shapes -->
+    <div class="floating-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <a href="dashboard.html" class="nav-logo">🏭 Smart Warehouse</a>
+            <ul class="nav-links">
+                <li><a href="inventory.html">Inventory</a></li>
+                <li><a href="sales.html">Sales</a></li>
+                <li><a href="invoices.html">Invoices</a></li>
+                <li><a href="profile.html">Profile</a></li>
+                <li><a href="settings.html">Settings</a></li>
+            </ul>
+            <div class="nav-user">
+                <button id="logoutBtn" class="btn-logout">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container">
+        <div class="reports-container">
+            <!-- Header -->
+            <div class="reports-header">
+                <h1>Reports & Analytics</h1>
+                <p>Comprehensive overview of sales, inventory, and business metrics</p>
+            </div>
+
+            <!-- Sales and Status Charts -->
+            <div class="chart-grid">
+                <!-- Monthly Sales Chart -->
+                <div class="chart-card">
+                    <h2>Monthly Sales (Last 12 Months)</h2>
+                    <div class="chart-container">
+                        <canvas id="salesChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Inventory Breakdown Chart -->
+                <div class="chart-card">
+                    <h2>Inventory by Category</h2>
+                    <div class="chart-container">
+                        <canvas id="inventoryChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Status and Payment Charts -->
+            <div class="chart-grid">
+                <!-- Order Status Chart -->
+                <div class="chart-card">
+                    <h2>Orders by Status</h2>
+                    <div class="chart-container">
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Payment Status Chart -->
+                <div class="chart-card">
+                    <h2>Payment Status</h2>
+                    <div class="chart-container">
+                        <canvas id="paymentChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product Analytics -->
+            <div class="two-column-grid">
+                <!-- Top Selling Products -->
+                <div class="product-analytics">
+                    <h2>Top Selling Products</h2>
+                    <div id="topSellingProducts" class="products-grid">
+                        <p style="grid-column: 1/-1; text-align: center; color: var(--text-muted);">Loading...</p>
+                    </div>
+                </div>
+
+                <!-- Least Selling Products -->
+                <div class="product-analytics">
+                    <h2>Least Selling Products</h2>
+                    <div id="leastSellingProducts" class="products-grid">
+                        <p style="grid-column: 1/-1; text-align: center; color: var(--text-muted);">Loading...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Summary Stats (Hidden but kept for reference) -->
+            <div style="display: none;">
+                <p id="totalProducts">0</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../js/particles.js"></script>
+    <script src="../js/session.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/reports.js"></script>
+    
+    <script>
+        // Close modals when clicking outside
+        window.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal')) {
+                e.target.classList.remove('show');
+            }
+        });
+    </script>
+</body>
+</html>

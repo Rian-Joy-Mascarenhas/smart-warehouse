@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile - Smart Warehouse</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .profile-container {
+            max-width: 700px;
+            margin: 2rem auto;
+        }
+
+        .profile-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .profile-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .profile-header h1 {
+            margin: 0;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 1.8rem;
+        }
+
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: white;
+            box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
+        }
+
+        .profile-header-left {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .profile-header-info h2 {
+            margin: 0 0 0.25rem 0;
+            color: var(--text-white);
+            font-size: 1.3rem;
+        }
+
+        .profile-header-info p {
+            margin: 0;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .profile-buttons {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .btn-edit-profile {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #d946ef 100%);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-edit-profile:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(168, 85, 247, 0.4);
+        }
+
+        .profile-form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .profile-form-group label {
+            display: block;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        .profile-form-group input,
+        .profile-form-group textarea {
+            width: 100%;
+            padding: 0.9rem 1.2rem;
+            border: 1.5px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 1rem;
+            background: var(--bg-input);
+            color: var(--text-white);
+            transition: all 0.3s ease;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .profile-form-group input:focus,
+        .profile-form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background: var(--bg-input-focus);
+            box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
+        }
+
+        .profile-form-group input:disabled,
+        .profile-form-group textarea:disabled {
+            background: rgba(30, 41, 59, 0.5);
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .profile-section {
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .profile-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-white);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .form-row.full {
+            grid-template-columns: 1fr;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .action-buttons.hidden {
+            display: none;
+        }
+
+        .btn-save {
+            background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.6rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-cancel {
+            background: rgba(51, 65, 85, 0.8);
+            color: var(--text-white);
+            border: 1px solid var(--border-light);
+            padding: 0.8rem 1.6rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-cancel:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--primary-color);
+        }
+
+        .btn-edit-profile.hidden {
+            display: none;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 3px solid rgba(168, 85, 247, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s ease-in-out infinite;
+            margin-left: 0.5rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .empty-field {
+            color: var(--text-muted);
+            font-style: italic;
+            font-size: 0.9rem;
+        }
+
+        .info-icon {
+            width: 16px;
+            height: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(168, 85, 247, 0.2);
+            border-radius: 50%;
+            color: var(--primary-color);
+            font-size: 0.7rem;
+            margin-left: 0.3rem;
+        }
+
+        @media (max-width: 768px) {
+            .profile-container {
+                margin: 1rem;
+            }
+
+            .profile-card {
+                padding: 1.5rem;
+            }
+
+            .profile-header {
+                flex-direction: column;
+                text-align: center;
+                gap: 1rem;
+            }
+
+            .profile-header-left {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .profile-buttons {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .action-buttons button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Particle Canvas -->
+    <canvas id="particles"></canvas>
+
+    <!-- Floating Shapes -->
+    <div class="floating-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <a href="dashboard.html" class="nav-logo">🏭 Smart Warehouse</a>
+            <ul class="nav-links">
+                <li><a href="inventory.html">Inventory</a></li>
+                <li><a href="sales.html">Sales</a></li>
+                <li><a href="invoices.html">Invoice</a></li>
+                <li><a href="reports.html">Reports</a></li>
+                <li><a href="settings.html">Settings</a></li>
+            </ul>
+            <div class="nav-user">
+                <button id="logoutBtn" class="btn-logout">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="profile-container">
+        <div class="profile-card">
+            <!-- Profile Header -->
+            <div class="profile-header">
+                <div class="profile-header-left">
+                    <div class="profile-avatar" id="userAvatar">👤</div>
+                    <div class="profile-header-info">
+                        <h2 id="displayUsername">Loading...</h2>
+                        <p id="displayEmail">user@example.com</p>
+                    </div>
+                </div>
+                <div class="profile-buttons">
+                    <button class="btn-edit-profile" id="editProfileBtn" onclick="toggleEditMode()">
+                        Edit Profile
+                    </button>
+                </div>
+            </div>
+
+            <!-- Profile Form -->
+            <form id="profileForm">
+                <!-- Personal Information Section -->
+                <div class="profile-section">
+                    <div class="section-title">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                        Personal Information
+                    </div>
+
+                    <div class="form-row">
+                        <div class="profile-form-group">
+                            <label for="username">Username</label>
+                            <input type="text" id="username" disabled placeholder="Your username">
+                        </div>
+                        <div class="profile-form-group">
+                            <label for="email">Email Address</label>
+                            <input type="email" id="email" disabled placeholder="your@email.com">
+                        </div>
+                    </div>
+
+                    <div class="profile-form-group">
+                        <label for="mobile">Mobile Number</label>
+                        <input type="tel" id="mobile" disabled placeholder="Enter your mobile number">
+                    </div>
+                </div>
+
+                <!-- Company Information Section -->
+                <div class="profile-section">
+                    <div class="section-title">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+                            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                        </svg>
+                        Warehouse Information
+                    </div>
+
+                    <div class="profile-form-group">
+                        <label for="companyName">
+                            Warehouse Name
+                            <span class="info-icon" title="Optional - Add your Warehouse name">?</span>
+                        </label>
+                        <input type="text" id="companyName" disabled placeholder="Enter your Warehouse name">
+                    </div>
+
+                    <div class="profile-form-group">
+                        <label for="companyAddress">
+                            Warehouse Address
+                            <span class="info-icon" title="Optional - Add your Warehouse address">?</span>
+                        </label>
+                        <textarea id="companyAddress" disabled placeholder="Enter your Warehouse address" rows="3"></textarea>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons hidden" id="actionButtons">
+                    <button type="button" class="btn-cancel" onclick="cancelEdit()">Cancel</button>
+                    <button type="submit" class="btn-save" id="saveBtn">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../js/particles.js"></script>
+    <script src="../js/session.js"></script>
+    <script src="../js/auth.js"></script>
+    <script>
+        let isEditMode = false;
+        let originalData = {};
+
+        /**
+         * Load user profile from database
+         */
+        async function loadUserProfile() {
+            try {
+                const response = await fetch('http://localhost:5000/api/auth/profile', {
+                    method: 'GET',
+                    headers: sessionManager.getAuthHeaders()
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    const user = data.data.user;
+                    
+                    // Store original data for cancel functionality
+                    originalData = {
+                        username: user.username || '',
+                        email: user.email || '',
+                        mobile: user.mobile || '',
+                        companyName: user.company_name || '',
+                        companyAddress: user.company_address || ''
+                    };
+
+                    // Display user data
+                    document.getElementById('displayUsername').textContent = user.username || 'User';
+                    document.getElementById('displayEmail').textContent = user.email || 'No email';
+                    
+                    // Generate avatar from first letter
+                    const firstLetter = (user.username || 'U').charAt(0).toUpperCase();
+                    document.getElementById('userAvatar').textContent = firstLetter;
+
+                    // Fill form fields
+                    document.getElementById('username').value = user.username || '';
+                    document.getElementById('email').value = user.email || '';
+                    document.getElementById('mobile').value = user.mobile || '';
+                    document.getElementById('companyName').value = user.company_name || '';
+                    document.getElementById('companyAddress').value = user.company_address || '';
+                } else {
+                    showAlert('error', data.message || 'Failed to load profile');
+                }
+            } catch (error) {
+                console.error('Load profile error:', error);
+                showAlert('error', 'Failed to load profile: ' + error.message);
+            }
+        }
+
+        /**
+         * Toggle edit mode
+         */
+        function toggleEditMode() {
+            isEditMode = !isEditMode;
+            const editBtn = document.getElementById('editProfileBtn');
+            const actionButtons = document.getElementById('actionButtons');
+            const formInputs = document.querySelectorAll('#profileForm input, #profileForm textarea');
+
+            if (isEditMode) {
+                // Enable edit mode
+                editBtn.classList.add('hidden');
+                actionButtons.classList.remove('hidden');
+                
+                // Enable other fields
+                document.getElementById('username').disabled = false;
+                document.getElementById('email').disabled = false;
+                document.getElementById('mobile').disabled = false;
+                document.getElementById('companyName').disabled = false;
+                document.getElementById('companyAddress').disabled = false;
+
+                // Focus on first editable field
+                document.getElementById('username').focus();
+            } else {
+                isEditMode = false;
+                const editBtn = document.getElementById('editProfileBtn');
+                const actionButtons = document.getElementById('actionButtons');
+
+                // Restore original data
+                document.getElementById('username').value = originalData.username;
+                document.getElementById('email').value = originalData.email;
+                document.getElementById('mobile').value = originalData.mobile;
+                document.getElementById('companyName').value = originalData.companyName;
+                document.getElementById('companyAddress').value = originalData.companyAddress;
+                document.getElementById('username').value = originalData.username;
+
+                // Disable all fields
+                document.getElementById('username').disabled = true;
+                document.getElementById('email').disabled = true;
+                document.getElementById('mobile').disabled = true;
+                document.getElementById('companyName').disabled = true;
+                document.getElementById('companyAddress').disabled = true;
+
+                // Hide action buttons
+                editBtn.classList.remove('hidden');
+                actionButtons.classList.add('hidden');
+            }
+        }
+
+        /**
+         * Cancel edit mode
+         */
+        function cancelEdit() {
+            isEditMode = false;
+            const editBtn = document.getElementById('editProfileBtn');
+            const actionButtons = document.getElementById('actionButtons');
+
+            // Restore original data
+            document.getElementById('username').value = originalData.username;
+            document.getElementById('email').value = originalData.email;
+            document.getElementById('mobile').value = originalData.mobile;
+            document.getElementById('companyName').value = originalData.companyName;
+            document.getElementById('companyAddress').value = originalData.companyAddress;
+            document.getElementById('username').value = originalData.username;
+
+            // Disable all fields
+            document.getElementById('username').disabled = true;
+            document.getElementById('email').disabled = true;
+            document.getElementById('mobile').disabled = true;
+            document.getElementById('companyName').disabled = true;
+            document.getElementById('companyAddress').disabled = true;
+
+            // Hide action buttons
+            editBtn.classList.remove('hidden');
+            actionButtons.classList.add('hidden');
+
+            showAlert('info', 'Changes cancelled');
+        }
+
+        /**
+         * Handle form submission
+         */
+        async function handleProfileSubmit(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const mobile = document.getElementById('mobile').value.trim();
+            const companyName = document.getElementById('companyName').value.trim();
+            const companyAddress = document.getElementById('companyAddress').value.trim();
+
+            // Validation
+            if (!username || username === '') {
+                showAlert('error', 'Username is required');
+                return;
+            }
+
+            if (!email) {
+                showAlert('error', 'Email is required');
+                return;
+            }
+
+            if (!mobile) {
+                showAlert('error', 'Mobile number is required');
+                return;
+            }
+
+            if (mobile.length < 10) {
+                showAlert('error', 'Mobile number must be at least 10 characters');
+                return;
+            }
+
+            if (companyName && companyName.length < 2) {
+                showAlert('error', 'Company name must be at least 2 characters');
+                return;
+            }
+
+            if (companyAddress && companyAddress.length < 5) {
+                showAlert('error', 'Company address must be at least 5 characters');
+                return;
+            }
+
+            try {
+                showLoadingSave();
+
+                const response = await fetch('http://localhost:5000/api/auth/profile/complete', {
+                    method: 'PUT',
+                    headers: sessionManager.getAuthHeaders(),
+                    body: JSON.stringify({
+                        username,
+                        email,
+                        mobile,
+                        company_name: companyName,
+                        company_address: companyAddress
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Update session user data
+                    sessionManager.setUser(data.data.user);
+                    
+                    // Update displayed data
+                    originalData = {
+                        username: data.data.user.username || '',
+                        email: data.data.user.email || '',
+                        mobile: data.data.user.mobile || '',
+                        companyName: data.data.user.company_name || '',
+                        companyAddress: data.data.user.company_address || ''
+                    };
+
+                    // Update header
+                    document.getElementById('displayEmail').textContent = data.data.user.email || 'No email';
+
+                    showAlert('success', 'Profile updated successfully!');
+                    
+                    // Exit edit mode
+                    isEditMode = true;
+                    toggleEditMode();
+                } else {
+                    showAlert('error', data.message || 'Failed to update profile');
+                }
+            } catch (error) {
+                console.error('Profile update error:', error);
+                showAlert('error', 'Failed to update profile: ' + error.message);
+            } finally {
+                hideLoadingSave();
+            }
+        }
+
+        /**
+         * Show loading state on save button
+         */
+        function showLoadingSave() {
+            const saveBtn = document.getElementById('saveBtn');
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<span class="loading-spinner"></span> Saving...';
+        }
+
+        /**
+         * Hide loading state on save button
+         */
+        function hideLoadingSave() {
+            const saveBtn = document.getElementById('saveBtn');
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Save Changes';
+        }
+
+        /**
+         * Show alert message
+         */
+        function showAlert(type, message) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} show`;
+            alertDiv.textContent = message;
+            alertDiv.style.position = 'fixed';
+            alertDiv.style.top = '20px';
+            alertDiv.style.right = '20px';
+            alertDiv.style.zIndex = '9999';
+            alertDiv.style.maxWidth = '400px';
+
+            document.body.appendChild(alertDiv);
+
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+
+        /**
+         * Initialize page
+         */
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check authentication
+            if (sessionManager.isAuthenticated()) {
+                loadUserProfile();
+            } else {
+                window.location.href = 'login.html';
+            }
+
+            // Setup form submission
+            document.getElementById('profileForm').addEventListener('submit', handleProfileSubmit);
+        });
+    </script>
+</body>
+</html>

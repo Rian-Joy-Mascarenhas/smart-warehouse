@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoices - Smart Warehouse</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Particle Canvas -->
+    <canvas id="particles"></canvas>
+
+    <!-- Floating Shapes -->
+    <div class="floating-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <a href="dashboard.html" class="nav-logo">🏭 Smart Warehouse</a>
+            <ul class="nav-links">
+                <li><a href="inventory.html">Inventory</a></li>
+                <li><a href="sales.html">Sales</a></li>
+                <li><a href="reports.html">Reports</a></li>
+                <li><a href="profile.html">Profile</a></li>
+                <li><a href="settings.html">Settings</a></li>
+            </ul>
+            <div class="nav-user">
+                <button id="logoutBtn" class="btn-logout">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Header -->
+        <div class="actions-header">
+            <div>
+                <h1><svg xmlns="http://www.w3.org/2000/svg" height="32" width="32" viewBox="0 0 384 512" style="display: inline; margin-right: 0.5rem;"><path fill="rgb(177, 151, 252)" d="M64 0C28.7 0 0 28.7 0 64L0 448c0 35.3 28.7 64 64 64l256 0c35.3 0 64-28.7 64-64l0-277.5c0-17-6.7-33.3-18.7-45.3L258.7 18.7C246.7 6.7 230.5 0 213.5 0L64 0zM325.5 176L232 176c-13.3 0-24-10.7-24-24L208 58.5 325.5 176zM64 384l0-64c0-17.7 14.3-32 32-32l192 0c17.7 0 32 14.3 32 32l0 64c0 17.7-14.3 32-32 32L96 416c-17.7 0-32-14.3-32-32zM88 64l48 0c13.3 0 24 10.7 24 24s-10.7 24-24 24l-48 0c-13.3 0-24-10.7-24-24S74.7 64 88 64zm0 96l48 0c13.3 0 24 10.7 24 24s-10.7 24-24 24l-48 0c-13.3 0-24-10.7-24-24s10.7-24 24-24z"/></svg>Invoice Management</h1>
+                <p style="color: var(--text-muted); margin-top: 0.5rem;">Create, view, and manage invoices from sales orders</p>
+            </div>
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="invoiceManager.openModal('createInvoiceModal')">+ Create Invoice</button>
+            </div>
+        </div>
+
+        <!-- Statistics -->
+        <div class="stats-container" style="margin-bottom: 2rem;">
+            <div class="stat-card">
+                <h3><svg xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 384 512"><path fill="rgb(99, 230, 190)" d="M64 0C28.7 0 0 28.7 0 64L0 448c0 35.3 28.7 64 64 64l256 0c35.3 0 64-28.7 64-64l0-277.5c0-17-6.7-33.3-18.7-45.3L258.7 18.7C246.7 6.7 230.5 0 213.5 0L64 0zM325.5 176L232 176c-13.3 0-24-10.7-24-24L208 58.5 325.5 176zM64 384l0-64c0-17.7 14.3-32 32-32l192 0c17.7 0 32 14.3 32 32l0 64c0 17.7-14.3 32-32 32L96 416c-17.7 0-32-14.3-32-32z"/></svg> Total Invoices</h3>
+                <div class="stat-value" id="totalInvoices">0</div>
+            </div>
+        </div>
+
+        <!-- Search and Filters -->
+        <div class="filters">
+            <input type="text" id="searchInvoices" placeholder="Search invoices by invoice number..." style="flex: 2;">
+        </div>
+
+        <!-- Invoices Table -->
+        <div class="table-container">
+            <table id="invoicesTable">
+                <thead>
+                    <tr>
+                        <th>Invoice Number</th>
+                        <th>Date</th>
+                        <th>Payment Method</th>
+                        <th>Actions</th>
+                        <th>Downloads</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 2rem;">Loading invoices...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div id="invoicePagination" style="display: flex; justify-content: center; gap: 1rem; margin: 2rem 0;"></div>
+    </div>
+
+    <!-- Create Invoice Modal -->
+    <div id="createInvoiceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Create New Invoice</h2>
+                <button type="button" class="modal-close" onclick="invoiceManager.closeModal('createInvoiceModal')">&times;</button>
+            </div>
+            <form id="createInvoiceForm">
+                <div class="form-group">
+                    <label for="orderSelect">Select Order *</label>
+                    <select id="orderSelect" required style="width: 100%; padding: 0.9rem 1.2rem; border: 1.5px solid var(--border-color); border-radius: 10px; background: var(--bg-input); color: var(--text-white);">
+                        <option value="">-- Select an order --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="paymentMethod">Payment Method *</label>
+                    <select id="paymentMethod" required style="width: 100%; padding: 0.9rem 1.2rem; border: 1.5px solid var(--border-color); border-radius: 10px; background: var(--bg-input); color: var(--text-white);">
+                        <option value="">-- Select payment method --</option>
+                        <option value="Cash">Cash</option>
+                        <option value="Credit Card">Credit Card</option>
+                        <option value="Debit Card">Debit Card</option>
+                        <option value="Bank Transfer">Bank Transfer</option>
+                        <option value="Check">Check</option>
+                        <option value="Online Payment">Online Payment</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="invoiceNotes">Notes</label>
+                    <textarea id="invoiceNotes" placeholder="Enter any additional notes..." rows="4" style="width: 100%; padding: 0.9rem 1.2rem; border: 1.5px solid var(--border-color); border-radius: 10px; background: var(--bg-input); color: var(--text-white); font-family: 'Poppins', sans-serif;"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Create Invoice</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Invoice Preview Modal -->
+    <div id="invoicePreviewModal" class="modal">
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header">
+                <h2>Invoice Preview</h2>
+                <button type="button" class="modal-close" onclick="invoiceManager.closeModal('invoicePreviewModal')">&times;</button>
+            </div>
+            <div id="invoicePreviewContainer" style="padding: 1.5rem; max-height: 70vh; overflow-y: auto;"></div>
+        </div>
+    </div>
+
+    <!-- Edit Invoice Modal -->
+    <div id="editInvoiceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Invoice</h2>
+                <button type="button" class="modal-close" onclick="invoiceManager.closeModal('editInvoiceModal')">&times;</button>
+            </div>
+            <form id="editInvoiceForm">
+                <input type="hidden" id="editInvoiceId">
+                <div class="form-group">
+                    <label for="editPaymentMethod">Payment Method</label>
+                    <select id="editPaymentMethod" style="width: 100%; padding: 0.9rem 1.2rem; border: 1.5px solid var(--border-color); border-radius: 10px; background: var(--bg-input); color: var(--text-white);">
+                        <option value="Cash">Cash</option>
+                        <option value="Credit Card">Credit Card</option>
+                        <option value="Debit Card">Debit Card</option>
+                        <option value="Bank Transfer">Bank Transfer</option>
+                        <option value="Check">Check</option>
+                        <option value="Online Payment">Online Payment</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="editInvoiceNotes">Notes</label>
+                    <textarea id="editInvoiceNotes" rows="4" style="width: 100%; padding: 0.9rem 1.2rem; border: 1.5px solid var(--border-color); border-radius: 10px; background: var(--bg-input); color: var(--text-white); font-family: 'Poppins', sans-serif;"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Update Invoice</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../js/particles.js"></script>
+    <script src="../js/session.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/sales.js"></script>
+    <script src="../js/invoice.js"></script>
+    <script>
+        // Load orders for dropdown
+        async function loadOrdersForDropdown() {
+            try {
+                const response = await fetch('http://localhost:5000/api/sales/orders?per_page=1000', {
+                    method: 'GET',
+                    headers: sessionManager.getAuthHeaders()
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    const orders = data.data.orders;
+                    const select = document.getElementById('orderSelect');
+                    select.innerHTML = '<option value="">-- Select an order --</option>';
+
+                    orders.forEach(order => {
+                        const option = document.createElement('option');
+                        option.value = order._id;
+                        option.textContent = `${order.order_number} - ₹${order.total_amount.toFixed(2)}`;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Load orders error:', error);
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            if (sessionManager.isAuthenticated()) {
+                loadOrdersForDropdown();
+            } else {
+                window.location.href = 'login.html';
+            }
+
+            // Close modals when clicking outside
+            window.addEventListener('click', (e) => {
+                if (e.target.classList.contains('modal')) {
+                    e.target.classList.remove('show');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

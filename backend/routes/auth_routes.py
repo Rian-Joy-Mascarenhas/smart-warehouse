@@ -298,3 +298,88 @@ def verify_token(user_id):
         )
     except Exception as e:
         return create_response('error', f'Server error: {str(e)}', status_code=500)
+    
+@auth_bp.route('/profile/complete', methods=['PUT'])
+@token_required
+def update_profile_complete(user_id):
+    """
+    Update complete user profile including company details
+    
+    Expected JSON:
+    {
+        "mobile": "string",
+        "email": "string",
+        "company_name": "string",
+        "company_address": "string"
+    }
+    """
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return create_response('error', 'No data provided', status_code=400)
+        
+        update_data = {}
+
+        if 'username' in data:
+            username = data['username'].strip()
+            if not username:
+                return create_response('error', 'Username cannot be empty', status_code=400)
+            update_data['username'] = username
+        
+        # Update mobile if provided
+        if 'mobile' in data:
+            mobile = data['mobile'].strip()
+            if not mobile:
+                return create_response('error', 'Mobile number cannot be empty', status_code=400)
+            if len(mobile) < 10:
+                return create_response('error', 'Mobile number must be at least 10 characters', status_code=400)
+            update_data['mobile'] = mobile
+        
+        # Update email if provided
+        if 'email' in data:
+            new_email = data['email'].strip()
+            is_valid, message = validate_email_format(new_email)
+            if not is_valid:
+                return create_response('error', f'Invalid email: {message}', status_code=400)
+            
+            # Check if email is already in use by another user
+            existing_user = User.find_by_email(new_email)
+            if existing_user and existing_user['_id'] != user_id:
+                return create_response('error', 'Email already in use', status_code=409)
+            
+            update_data['email'] = new_email
+        
+        # Update company_name if provided
+        if 'company_name' in data:
+            company_name = data['company_name'].strip()
+            if company_name and len(company_name) < 2:
+                return create_response('error', 'Company name must be at least 2 characters', status_code=400)
+            update_data['company_name'] = company_name
+        
+        # Update company_address if provided
+        if 'company_address' in data:
+            company_address = data['company_address'].strip()
+            if company_address and len(company_address) < 5:
+                return create_response('error', 'Company address must be at least 5 characters', status_code=400)
+            update_data['company_address'] = company_address
+        
+        if not update_data:
+            return create_response('error', 'No valid fields to update', status_code=400)
+        
+        # Update user
+        success = User.update_user(user_id, update_data)
+        
+        if success:
+            user = User.get_user_profile(user_id)
+            return create_response(
+                'success',
+                'Profile updated successfully',
+                data={'user': user},
+                status_code=200
+            )
+        else:
+            return create_response('error', 'Failed to update profile', status_code=500)
+    
+    except Exception as e:
+        return create_response('error', f'Server error: {str(e)}', status_code=500)

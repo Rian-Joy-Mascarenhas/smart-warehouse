@@ -85,7 +85,7 @@ def create_product(user_id):
             return create_response('error', 'No data provided', status_code=400)
         
         # Validate required fields
-        required_fields = ['name', 'sku', 'price', 'quantity', 'min_stock', 'max_stock']
+        required_fields = ['name', 'sku', 'price', 'quantity', 'min_stock']
         missing_fields = [field for field in required_fields if field not in data or data[field] == '']
         
         if missing_fields:
@@ -119,7 +119,6 @@ def create_product(user_id):
             price=data['price'],
             quantity=data['quantity'],
             min_stock=data['min_stock'],
-            max_stock=data['max_stock'],
             description=data.get('description', '').strip(),
             created_by=user_id
         )
@@ -171,7 +170,7 @@ def update_product(user_id, product_id):
         
         # Prepare update data
         update_data = {}
-        updateable_fields = ['name', 'sku', 'category_id', 'price', 'min_stock', 'max_stock', 'description']
+        updateable_fields = ['name', 'sku', 'category_id', 'price', 'min_stock', 'description']
         
         for field in updateable_fields:
             if field in data:
