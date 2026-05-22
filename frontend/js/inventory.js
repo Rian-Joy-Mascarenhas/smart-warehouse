@@ -177,7 +177,6 @@ class InventoryManager {
                 <td>
                     <button class="btn btn-sm btn-edit" onclick="inventoryManager.editProduct('${product._id}')">Edit</button>
                     <button class="btn btn-sm btn-delete" onclick="inventoryManager.deleteProduct('${product._id}')">Delete</button>
-                    <button class="btn btn-sm btn-adjust" onclick="inventoryManager.showAdjustStockModal('${product._id}')">Adjust</button>
                 </td>
             `;
 
@@ -233,7 +232,7 @@ class InventoryManager {
         const price = document.getElementById('productPrice')?.value;
         const quantity = document.getElementById('productQuantity')?.value;
         const minStock = document.getElementById('productMinStock')?.value;
-        const description = document.getElementById('productDescription')?.value.trim();
+        
 
         // Validate required fields
         if (!name || name.length < 2) {
@@ -264,8 +263,7 @@ class InventoryManager {
             category_id: categoryId && categoryId !== '' ? categoryId : null,
             price: parseFloat(price),
             quantity: parseInt(quantity),
-            min_stock: parseInt(minStock),
-            description: description || ''
+            min_stock: parseInt(minStock)
         };
 
         console.log('Form data being sent:', formData); // DEBUG
@@ -341,9 +339,9 @@ class InventoryManager {
                 document.getElementById('editProductName').value = product.name;
                 document.getElementById('editProductSku').value = product.sku;
                 document.getElementById('editProductPrice').value = product.price;
+                document.getElementById('editProductQuantity').value = product.quantity;
                 document.getElementById('editProductMinStock').value = product.min_stock;
                 document.getElementById('editProductCategory').value = product.category_id || '';
-                document.getElementById('editProductDescription').value = product.description || '';
 
                 this.openModal('editProductModal');
             } else {
@@ -368,8 +366,8 @@ class InventoryManager {
         const sku = document.getElementById('editProductSku')?.value.trim();
         const categoryId = document.getElementById('editProductCategory')?.value.trim();
         const price = document.getElementById('editProductPrice')?.value;
+        const quantity = document.getElementById('editProductQuantity')?.value;
         const minStock = document.getElementById('editProductMinStock')?.value;
-        const description = document.getElementById('editProductDescription')?.value.trim();
 
         // Validate required fields
         if (!name || name.length < 2) {
@@ -388,6 +386,10 @@ class InventoryManager {
             this.showAlert('error', 'Valid minimum stock is required');
             return;
         }
+        if (!quantity || parseInt(quantity) < 0) {
+            this.showAlert('error', 'Valid quantity is required');
+            return;
+        }
 
         // Prepare form data
         const formData = {
@@ -395,8 +397,8 @@ class InventoryManager {
             sku: sku,
             category_id: categoryId && categoryId !== '' ? categoryId : null,
             price: parseFloat(price),
-            min_stock: parseInt(minStock),
-            description: description || ''
+            quantity: parseInt(quantity),
+            min_stock: parseInt(minStock)
         };
 
         console.log('Form data being sent:', formData); // DEBUG
@@ -475,59 +477,6 @@ class InventoryManager {
         } catch (error) {
             console.error('Delete product error:', error);
             this.showAlert('error', 'Failed to delete product');
-        }
-    }
-
-    /**
-     * Show adjust stock modal
-     */
-    showAdjustStockModal(productId) {
-        document.getElementById('adjustProductId').value = productId;
-        this.openModal('adjustStockModal');
-    }
-
-    /**
-     * Handle adjust stock
-     */
-    async handleAdjustStock(e) {
-        e.preventDefault();
-
-        const productId = document.getElementById('adjustProductId').value;
-        const quantityChange = document.getElementById('quantityChange')?.value;
-        const reason = document.getElementById('adjustReason')?.value.trim();
-
-        if (!quantityChange || !reason) {
-            this.showAlert('error', 'All fields are required');
-            return;
-        }
-
-        try {
-            this.showLoading('adjustStockForm');
-
-            const response = await fetch(`${this.apiUrl}/inventory/adjust-stock/${productId}`, {
-                method: 'POST',
-                headers: sessionManager.getAuthHeaders(),
-                body: JSON.stringify({
-                    quantity_change: parseInt(quantityChange),
-                    reason: reason
-                })
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                this.showAlert('success', 'Stock adjusted successfully');
-                document.getElementById('adjustStockForm').reset();
-                this.loadProducts();
-                this.closeModal('adjustStockModal');
-            } else {
-                this.showAlert('error', data.message);
-            }
-        } catch (error) {
-            console.error('Adjust stock error:', error);
-            this.showAlert('error', 'Failed to adjust stock');
-        } finally {
-            this.hideLoading('adjustStockForm');
         }
     }
 

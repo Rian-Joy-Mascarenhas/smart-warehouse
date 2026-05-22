@@ -233,10 +233,6 @@
                         <input type="number" id="productMinStock" required min="0" placeholder="0">
                     </div>
                 </div>
-                <div class="form-group">
-                    <label for="productDescription">Description</label>
-                    <textarea id="productDescription" placeholder="Enter product description"></textarea>
-                </div>
                 <button type="submit" class="btn btn-primary">Create Product</button>
             </form>
         </div>
@@ -268,47 +264,14 @@
                     <input type="number" id="editProductPrice" step="0.01" min="0" required>
                 </div>
                 <div class="form-group">
+                    <label for="editProductQuantity">Quantity</label>
+                    <input type="number" id="editProductQuantity" min="0" required>
+                </div>
+                <div class="form-group">
                     <label for="editProductMinStock">Min Stock</label>
                     <input type="number" id="editProductMinStock" min="0" required>
                 </div>
-                <div class="form-group">
-                    <label for="editProductDescription">Description</label>
-                    <textarea id="editProductDescription"></textarea>
-                </div>
                 <button type="submit" class="btn btn-primary">Update Product</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Adjust Stock Modal -->
-    <div id="adjustStockModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Adjust Stock</h2>
-                <button type="button" class="modal-close" onclick="inventoryManager.closeModal('adjustStockModal')">&times;</button>
-            </div>
-            <form id="adjustStockForm">
-                <input type="hidden" id="adjustProductId">
-                <div class="form-group">
-                    <label for="quantityChange">Quantity Change *</label>
-                    <input 
-                        type="number" 
-                        id="quantityChange" 
-                        required 
-                        placeholder="Use positive for adding, negative for removing"
-                    >
-                    <small style="color: #7f8c8d;">Enter positive number to add stock, negative to remove</small>
-                </div>
-                <div class="form-group">
-                    <label for="adjustReason">Reason *</label>
-                    <textarea 
-                        id="adjustReason" 
-                        required 
-                        rows="3" 
-                        placeholder="Enter reason for stock adjustment (e.g., Received from supplier, Damaged inventory)"
-                    ></textarea>
-                </div>
-                <button type="submit" class="btn btn-primary">Adjust Stock</button>
             </form>
         </div>
     </div>

@@ -63,14 +63,6 @@ def validate_product_data(data):
         except (ValueError, TypeError):
             errors.append('Minimum stock must be a valid integer')
     
-    # Validate max_stock
-    if 'max_stock' in data:
-        try:
-            max_stock = int(data['max_stock'])
-            if max_stock < 0:
-                errors.append('Maximum stock cannot be negative')
-        except (ValueError, TypeError):
-            errors.append('Maximum stock must be a valid integer')
     
     # Check if min_stock < max_stock
     if 'min_stock' in data and 'max_stock' in data:

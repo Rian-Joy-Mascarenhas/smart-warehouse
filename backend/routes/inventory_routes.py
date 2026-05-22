@@ -119,7 +119,6 @@ def create_product(user_id):
             price=data['price'],
             quantity=data['quantity'],
             min_stock=data['min_stock'],
-            description=data.get('description', '').strip(),
             created_by=user_id
         )
         
@@ -170,7 +169,7 @@ def update_product(user_id, product_id):
         
         # Prepare update data
         update_data = {}
-        updateable_fields = ['name', 'sku', 'category_id', 'price', 'min_stock', 'description']
+        updateable_fields = ['name', 'sku', 'category_id', 'price', 'quantity', 'min_stock']
         
         for field in updateable_fields:
             if field in data:
@@ -367,53 +366,7 @@ def delete_category(user_id, category_id):
     except Exception as e:
         return create_response('error', f'Server error: {str(e)}', status_code=500)
 
-# ===================== STOCK OPERATIONS =====================
-
-@inventory_bp.route('/adjust-stock/<product_id>', methods=['POST'])
-@token_required
-def adjust_stock(user_id, product_id):
-    """Adjust product stock"""
-    try:
-        data = request.get_json()
-        
-        if not data:
-            return create_response('error', 'No data provided', status_code=400)
-        
-        quantity_change = data.get('quantity_change')
-        reason = data.get('reason', '').strip()
-        
-        # Validate stock adjustment
-        is_valid, message = validate_stock_adjustment(quantity_change, reason)
-        if not is_valid:
-            return create_response('error', message, status_code=400)
-        
-        inventory = Inventory(user_id)
-        
-        # Check if product exists
-        product = inventory.find_product_by_id(product_id)
-        if not product:
-            return create_response('error', 'Product not found', status_code=404)
-        
-        # Adjust stock
-        updated_product = inventory.adjust_stock(
-            product_id=product_id,
-            quantity_change=int(quantity_change),
-            reason=reason,
-            user_id=user_id
-        )
-        
-        if updated_product:
-            return create_response(
-                'success',
-                'Stock adjusted successfully',
-                data={'product': updated_product},
-                status_code=200
-            )
-        else:
-            return create_response('error', 'Failed to adjust stock', status_code=500)
-    
-    except Exception as e:
-        return create_response('error', f'Server error: {str(e)}', status_code=500)
+# ===================== STOCK OPERATIONS ====================
 
 @inventory_bp.route('/low-stock', methods=['GET'])
 @token_required
