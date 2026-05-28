@@ -59,8 +59,13 @@ class SalesManager {
      * Load all products for dropdown
      */
     async loadProducts() {
-        try {
-            const response = await fetch(`${this.apiUrl}/inventory/products?per_page=1000`, {
+    try {
+        let allProducts = [];
+        let page = 1;
+        let hasMore = true;
+
+        while (hasMore) {
+            const response = await fetch(`${this.apiUrl}/inventory/products?page=${page}&per_page=10`, {
                 method: 'GET',
                 headers: sessionManager.getAuthHeaders()
             });
@@ -69,13 +74,22 @@ class SalesManager {
 
             if (response.ok) {
                 const products = data.data.products;
-                this.products = products; // Store for reference
-                this.populateProductDropdown(products);
+                allProducts = allProducts.concat(products);
+                
+                // Check if there are more pages
+                hasMore = products.length === 10; // If less than 10, it's the last page
+                page++;
+            } else {
+                hasMore = false;
             }
-        } catch (error) {
-            console.error('Load products error:', error);
         }
+
+        this.products = allProducts; // Store all products
+        this.populateProductDropdown(allProducts);
+    } catch (error) {
+        console.error('Load products error:', error);
     }
+}
 
     /**
      * Populate product dropdown
