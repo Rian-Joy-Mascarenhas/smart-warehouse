@@ -263,6 +263,49 @@ class Inventory:
         except Exception as e:
             print(f"Error getting low stock items: {str(e)}")
             return []
+        
+    def adjust_stock(self, product_id, quantity_change, reason, user_id):
+        """Adjust product stock by a quantity change"""
+        try:
+            # First, get the current product
+            product = self.find_product_by_id(product_id)
+            if not product:
+                return False
+            
+            new_quantity = product['quantity'] + quantity_change
+            
+            # Prevent negative stock
+            if new_quantity < 0:
+                print(f"Error: Cannot reduce stock below 0 for product {product_id}")
+                return False
+            
+            # Update product quantity
+            result = self.products_collection.update_one(
+                {'_id': ObjectId(product_id)},
+                {'$set': {
+                    'quantity': new_quantity,
+                    'updated_at': datetime.utcnow()
+                }}
+            )
+            
+            # Log the adjustment
+            if result.modified_count > 0:
+                log_entry = {
+                    'product_id': ObjectId(product_id),
+                    'quantity_change': quantity_change,
+                    'previous_quantity': product['quantity'],
+                    'new_quantity': new_quantity,
+                    'reason': reason,
+                    'created_by': ObjectId(user_id),
+                    'created_at': datetime.utcnow()
+                }
+                self.inventory_logs_collection.insert_one(log_entry)
+                return True
+            
+            return False
+        except Exception as e:
+            print(f"Error adjusting stock: {str(e)}")
+            return False
 
     def get_inventory_logs(self, product_id=None, limit=50):
         """Get inventory transaction logs"""

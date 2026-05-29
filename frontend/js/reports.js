@@ -64,42 +64,72 @@ class ReportsManager {
      * Load sales data from API
      */
     async loadSalesData() {
-        try {
-            const response = await fetch(`${this.apiUrl}/sales/orders?per_page=1000`, {
+    try {
+        let allOrders = [];
+        let page = 1;
+        let hasMore = true;
+
+        while (hasMore) {
+            const response = await fetch(`${this.apiUrl}/sales/orders?page=${page}&per_page=10`, {
                 method: 'GET',
                 headers: sessionManager.getAuthHeaders()
             });
 
             if (response.ok) {
                 const data = await response.json();
-                this.allSalesData = data.data.orders || [];
+                const orders = data.data.orders || [];
+                allOrders = allOrders.concat(orders);
+                
+                // Check if there are more pages
+                hasMore = orders.length === 10; // If less than 10, it's the last page
+                page++;
+            } else {
+                hasMore = false;
             }
-        } catch (error) {
-            console.error('Load sales data error:', error);
-            this.allSalesData = [];
         }
+
+        this.allSalesData = allOrders;
+    } catch (error) {
+        console.error('Load sales data error:', error);
+        this.allSalesData = [];
     }
+}
 
     /**
      * Load inventory data from API
      */
     async loadInventoryData() {
-        try {
-            const response = await fetch(`${this.apiUrl}/inventory/products?per_page=1000`, {
+    try {
+        let allProducts = [];
+        let page = 1;
+        let hasMore = true;
+
+        while (hasMore) {
+            const response = await fetch(`${this.apiUrl}/inventory/products?page=${page}&per_page=10`, {
                 method: 'GET',
                 headers: sessionManager.getAuthHeaders()
             });
 
             if (response.ok) {
                 const data = await response.json();
-                this.allProductsData = data.data.products || [];
-                document.getElementById('totalProducts').textContent = this.allProductsData.length;
+                const products = data.data.products || [];
+                allProducts = allProducts.concat(products);
+                
+                // Check if there are more pages
+                hasMore = products.length === 10; // If less than 10, it's the last page
+                page++;
+            } else {
+                hasMore = false;
             }
-        } catch (error) {
-            console.error('Load inventory data error:', error);
-            this.allProductsData = [];
         }
+
+        this.allProductsData = allProducts;
+        document.getElementById('totalProducts').textContent = this.allProductsData.length;
+    } catch (error) {
+        console.error('Load inventory data error:', error);
+        this.allProductsData = [];
     }
+}
 
     /**
      * Initialize all charts
