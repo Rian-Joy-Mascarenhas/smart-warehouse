@@ -75,34 +75,54 @@ def create_invoice(user_id):
     """Create invoice from sales order"""
     try:
         data = request.get_json()
-        
+
         if not data:
             return create_response('error', 'No data provided', status_code=400)
-        
+
         order_id = data.get('order_id')
         payment_method = data.get('payment_method', '').strip()
         notes = data.get('notes', '').strip()
-        
+
         if not order_id:
             return create_response('error', 'Order ID is required', status_code=400)
-        
+
         if not payment_method:
             return create_response('error', 'Payment method is required', status_code=400)
-        
+
         # Check if invoice already exists for this order
         invoice_mgr = Invoice(user_id)
         existing_invoice = invoice_mgr.find_invoice_by_order(order_id)
-        
+
         if existing_invoice== True:
             return create_response('error', 'Invoice already exists for this order', status_code=409)
-        
+
         # Verify order exists
         sales_mgr = Sales(user_id)
         order = sales_mgr.find_order_by_id(order_id)
-        
+
         if not order:
             return create_response('error', 'Order not found', status_code=404)
-        
+
+        # Validate order status - cannot create invoice for cancelled orders
+        if order.get('status') == 'CANCELLED':
+            return create_response(
+                'error',
+                'Invoice cannot be generated for this order because the order has been cancelled',
+                status_code=400
+            )
+
+        # Validate payment status - invoice can only be created for fully paid orders
+        if order.get('payment_status') != 'PAID':
+            payment_status = order.get('payment_status', 'UNKNOWN')
+            if payment_status == 'UNPAID':
+                error_msg = 'Invoice cannot be generated for this order because payment has not been completed yet'
+            elif payment_status == 'PARTIAL':
+                error_msg = 'Invoice cannot be generated for this order because payment is incomplete. Please complete the full payment'
+            else:
+                error_msg = 'Invoice cannot be generated for this order due to payment status issues'
+
+            return create_response('error', error_msg, status_code=400)
+
         # Create invoice
         invoice = invoice_mgr.create_invoice(
             order_id=order_id,
@@ -110,7 +130,7 @@ def create_invoice(user_id):
             notes=notes,
             created_by=user_id
         )
-        
+
         if invoice:
             return create_response(
                 'success',
@@ -120,7 +140,7 @@ def create_invoice(user_id):
             )
         else:
             return create_response('error', 'Failed to create invoice', status_code=500)
-    
+
     except Exception as e:
         return create_response('error', f'Server error: {str(e)}', status_code=500)
 

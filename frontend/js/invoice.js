@@ -9,6 +9,7 @@ class InvoiceManager {
         this.currentPage = 1;
         this.itemsPerPage = 10;
         this.setupEventListeners();
+        this.loadOrdersForDropdown();
     }
 
     /**
@@ -696,6 +697,50 @@ class InvoiceManager {
             console.error('Load stats error:', error);
         }
     }
+
+    async loadOrdersForDropdown() {
+    try {
+        let allOrders = [];
+        let page = 1;
+        let hasMore = true;
+
+        while (hasMore) {
+            const response = await fetch(`${this.apiUrl}/sales/orders?page=${page}&per_page=10`, {
+                method: 'GET',
+                headers: sessionManager.getAuthHeaders()
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                const orders = data.data.orders || [];
+                allOrders = allOrders.concat(orders);
+                
+                // Check if there are more pages
+                hasMore = orders.length === 10; // If less than 10, it's the last page
+                page++;
+            } else {
+                hasMore = false;
+            }
+        }
+
+        this.populateOrderDropdown(allOrders);
+    } catch (error) {
+        console.error('Load orders error:', error);
+    }
+}
+
+populateOrderDropdown(orders) {
+    const select = document.getElementById('orderSelect');
+    if (!select) return;
+
+    select.innerHTML = '<option value="">Select Order</option>';
+    orders.forEach(order => {
+        const option = document.createElement('option');
+        option.value = order._id;
+        option.textContent = `Order #${order.order_number} - ₹${order.total_amount.toFixed(2)}`;
+        select.appendChild(option);
+    });
+}
 
     /**
      * Show alert

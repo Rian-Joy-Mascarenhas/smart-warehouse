@@ -510,7 +510,7 @@ class SalesManager {
             // Get product names from items
             const productNames = order.items.map(item => {
                 const product = this.products?.find(p => p._id === item.product_id);
-                return product ? product.name : item.product_id;
+                return product ? product.name : item.product_name;
             }).join(', ');
 
             row.innerHTML = `
@@ -565,7 +565,7 @@ class SalesManager {
     }
 
     /**
-     * Handle add order item - FIXED CALCULATION
+     * Handle add order item
      */
     handleAddOrderItem() {
         const productSelect = document.getElementById('orderProduct');

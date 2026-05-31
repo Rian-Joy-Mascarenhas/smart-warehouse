@@ -139,6 +139,7 @@ html, body {
 }
 
 .login-card {
+    margin-top: 4rem;
     background: rgba(30, 41, 59, 0.7);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
