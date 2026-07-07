@@ -147,14 +147,6 @@ source venv/bin/activate
 pip install -r backend/requirements.txt
 ```
 
-### Configure Environment Variables
-
-Create a `.env` file inside the backend folder:
-
-```env
-MONGO_URI=your_mongodb_connection_string
-JWT_SECRET_KEY=your_secret_key
-```
 
 ### Run the Application
 
